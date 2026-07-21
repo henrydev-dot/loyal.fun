@@ -6,6 +6,9 @@ resolver = "2"
 overflow-checks = true
 lto = "fat"
 codegen-units = 1
+# Size-optimized: devnet rent scales with binary size (~7 SOL/MB).
+opt-level = "z"
+strip = true
 
 [profile.release.build-override]
 opt-level = 3
