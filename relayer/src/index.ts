@@ -237,6 +237,72 @@ app.post("/merchant/qr", qrLimiter, (req: Request, res: Response) => {
   });
 });
 
+// ---------------------------------------------------------------------------
+// POST /price — post a fresh Pyth price update on-chain (for open/close/liq)
+// ---------------------------------------------------------------------------
+// The browser can't run the Pyth receiver flow itself (it needs a funded
+// keypair), so the relayer posts the update and returns the PriceUpdateV2
+// account for the app to pass into open_position / close_position.
+import { HermesClient } from "@pythnetwork/hermes-client";
+import { PythSolanaReceiver } from "@pythnetwork/pyth-solana-receiver";
+
+const FEEDS: Record<string, string> = {
+  SOL: "0xef0d8b6fda2ceba41da15d4095d1da392a0d2f8ed0c6c7bc0f4cfac8c280b56d",
+  BTC: "0xe62df6c8b4a85fe1a67db44dc12de5db330f7ac66b72dc658afedf0f4a415b43",
+  WIF: "0x4ca4beeca86f0d164160323817a4e42b10010a724c2217c6ee41b54cd4cc61fc",
+  BONK: "0x72b021217ca3fe68922a19aaf990109cb9d84e9ad004b4d2025ad6f529314419",
+};
+
+const hermes = new HermesClient("https://hermes.pyth.network", {});
+
+const priceLimiter = rateLimit({
+  windowMs: 60_000,
+  limit: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+app.post("/price/:symbol", priceLimiter, async (req: Request, res: Response) => {
+  try {
+    const feedId = FEEDS[req.params.symbol?.toUpperCase() ?? ""];
+    if (!feedId) return res.status(400).json({ error: "unknown symbol" });
+
+    const receiver = new PythSolanaReceiver({
+      connection,
+      wallet: {
+        publicKey: feePayer.publicKey,
+        signTransaction: async (tx: any) => {
+          tx.sign(tx.constructor.name === "VersionedTransaction" ? [feePayer] : feePayer);
+          return tx;
+        },
+        signAllTransactions: async (txs: any[]) => {
+          for (const tx of txs) {
+            tx.sign(tx.constructor.name === "VersionedTransaction" ? [feePayer] : feePayer);
+          }
+          return txs;
+        },
+        payer: feePayer,
+      } as any,
+    });
+
+    const update = await hermes.getLatestPriceUpdates([feedId], { encoding: "base64" });
+    const builder = receiver.newTransactionBuilder({ closeUpdateAccounts: false });
+    await builder.addPostPriceUpdates(update.binary.data);
+    const priceUpdateAccount = builder
+      .getPriceUpdateAccount(feedId)
+      .toBase58();
+    await receiver.provider.sendAll(
+      await builder.buildVersionedTransactions({ computeUnitPriceMicroLamports: 100_000 }),
+      { skipPreflight: false }
+    );
+
+    return res.json({ priceUpdateAccount, feedId });
+  } catch (err) {
+    console.error("price post error:", err);
+    return res.status(500).json({ error: String(err) });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`loyal.fun relayer listening on :${PORT}`);
   console.log(`  fee payer: ${feePayer.publicKey.toBase58()}`);

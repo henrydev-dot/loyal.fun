@@ -131,12 +131,15 @@ async function main() {
   umi.use(keypairIdentity(umi.eddsa.createKeypairFromSecretKey(admin.secretKey)));
 
   const merkleTreeSigner = generateSigner(umi);
-  // 2^14 = 16k coupons for ~0.34 SOL of rent — compression economics.
+  // 2^14 = 16k coupons for well under a SOL of rent — compression economics.
+  // canopyDepth 10 keeps redemption proofs at 4 nodes so the whole
+  // burn-to-redeem transaction fits in a QR-sized payload.
   await (
     await createTree(umi, {
       merkleTree: merkleTreeSigner,
       maxDepth: 14,
       maxBufferSize: 64,
+      canopyDepth: 10,
       public: false,
     })
   ).sendAndConfirm(umi);

@@ -2,7 +2,7 @@
   "name": "loyal-fun",
   "version": "0.1.0",
   "private": true,
-  "description": "loyal.fun — degen-able closed-loop loyalty points on Solana (Token-2022 + cNFT coupons + Pyth risk vaults + soulbound badges)",
+  "description": "loyal.fun \u2014 degen-able closed-loop loyalty points on Solana (Token-2022 + cNFT coupons + Pyth risk vaults + soulbound badges)",
   "license": "MIT",
   "workspaces": [
     "app",
@@ -16,7 +16,8 @@
     "vaults:devnet": "ts-node scripts/create_vaults.ts",
     "seed:devnet": "ts-node scripts/seed_demo.ts",
     "relayer": "npm --workspace relayer run dev",
-    "app": "npm --workspace app run dev"
+    "app": "npm --workspace app run dev",
+    "sync-idl": "mkdir -p app/public/idl && cp target/idl/*.json app/public/idl/"
   },
   "devDependencies": {
     "@coral-xyz/anchor": "^0.31.1",
