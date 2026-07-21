@@ -180,21 +180,43 @@ anchor test --skip-build # integration: QR (replay/expiry/bad signer/tampered pa
                          # positions (5× win, 2× loss, clamp, fee), liquidation + bounty, pause
 ```
 
-### 7.2. Wallet from Phantom (you hold devnet SOL in Phantom)
+### 7.2. Deploy wallet (you hold devnet SOL in Phantom)
 
-Phantom exports the private key as a base58 string; the Solana CLI expects a JSON byte array. The repo ships a converter:
+**Recommended: a fresh CLI wallet + a transfer from Phantom.** Phantom's secrets never touch the terminal:
 
-1. In Phantom: **Settings → Manage Accounts → (your account) → Show Private Key** — copy the base58 string.
-2. In a terminal:
+```bash
+solana-keygen new -o ~/.config/solana/id.json   # save the phrase it prints
+solana config set --url devnet
+solana address                                   # copy this address
+```
+
+In Phantom, switch the network to **Devnet** (Settings → Developer Settings → Testnet Mode / network picker), send **3–4 SOL** to the copied address, then verify:
+
+```bash
+solana balance --url devnet                      # should show the transferred SOL
+```
+
+<details>
+<summary>Alternatives: import an existing Phantom account (recovery phrase or private key)</summary>
+
+**Recovery phrase (12/24 words):**
+
+```bash
+# 1. Print the addresses derived on Phantom's path (m/44'/501'/<i>'/0'):
+npx ts-node scripts/mnemonic_to_keypair.ts "word1 word2 ... word12"
+# 2. Pick the index matching your Phantom account and write it:
+npx ts-node scripts/mnemonic_to_keypair.ts "word1 ... word12" 0 ~/.config/solana/id.json
+```
+
+**Private key (base58)** — Phantom: Settings → Manage Accounts → (account) → Show Private Key:
 
 ```bash
 npx ts-node scripts/phantom_to_keypair.ts <BASE58_KEY> ~/.config/solana/id.json
-solana address            # must print your Phantom account's address
-solana balance --url devnet
-history -c                # you pasted a private key — clear shell history
 ```
 
-> Use a devnet-only account. Alternative without exporting a key: `solana-keygen new` and send it 2–3 SOL from Phantom.
+After importing: `solana address` must print your Phantom address; finish with `history -c` — you pasted a secret into the terminal. Use a devnet-only wallet.
+
+</details>
 
 ### 7.3. Full devnet test
 

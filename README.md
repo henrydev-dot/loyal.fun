@@ -180,21 +180,43 @@ anchor test --skip-build # integracja: QR (replay/expiry/zły podpis/podmieniony
                          # pozycje (wygrana 5×, strata 2×, clamp, fee), likwidacja + bounty, pauza
 ```
 
-### 7.2. Portfel z Phantoma (masz devnetowe SOL w Phantomie)
+### 7.2. Portfel do deployu (masz devnetowe SOL w Phantomie)
 
-Phantom eksportuje klucz prywatny jako ciąg base58; CLI Solany oczekuje tablicy JSON. W repo jest konwerter:
+**Zalecane: świeży portfel CLI + przelew z Phantoma.** Sekrety Phantoma nigdy nie dotykają terminala:
 
-1. W Phantomie: **Settings → Manage Accounts → (konto) → Show Private Key** — skopiuj ciąg base58.
-2. W terminalu:
+```bash
+solana-keygen new -o ~/.config/solana/id.json   # zapisz frazę, którą wypisze
+solana config set --url devnet
+solana address                                   # skopiuj ten adres
+```
+
+W Phantomie przełącz sieć na **Devnet** (Settings → Developer Settings → Testnet Mode / wybór sieci), wyślij **3–4 SOL** na skopiowany adres, potem sprawdź:
+
+```bash
+solana balance --url devnet                      # powinno pokazać przelane SOL
+```
+
+<details>
+<summary>Alternatywy: import istniejącego konta Phantom (fraza odzyskiwania lub klucz prywatny)</summary>
+
+**Fraza odzyskiwania (12/24 słowa):**
+
+```bash
+# 1. Wypisz adresy wyprowadzane ścieżką Phantoma (m/44'/501'/<i>'/0'):
+npx ts-node scripts/mnemonic_to_keypair.ts "slowo1 slowo2 ... slowo12"
+# 2. Wybierz indeks zgodny z kontem w Phantomie i zapisz:
+npx ts-node scripts/mnemonic_to_keypair.ts "slowo1 ... slowo12" 0 ~/.config/solana/id.json
+```
+
+**Klucz prywatny (base58)** — Phantom: Settings → Manage Accounts → (konto) → Show Private Key:
 
 ```bash
 npx ts-node scripts/phantom_to_keypair.ts <KLUCZ_BASE58> ~/.config/solana/id.json
-solana address            # musi pokazać adres konta z Phantoma
-solana balance --url devnet
-history -c                # wyczyść historię shella — wkleiłeś klucz prywatny
 ```
 
-> Używaj wyłącznie konta devnetowego. Alternatywa bez eksportu klucza: `solana-keygen new` i przelej 2–3 SOL z Phantoma na nowy adres.
+Po imporcie: `solana address` musi pokazać adres z Phantoma; na końcu `history -c` — wkleiłeś sekret do terminala. Używaj wyłącznie portfela devnetowego.
+
+</details>
 
 ### 7.3. Pełny test na devnecie
 
