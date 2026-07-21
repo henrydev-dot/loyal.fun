@@ -1,0 +1,28 @@
+[package]
+name = "loyal_core"
+version = "0.1.0"
+description = "loyal.fun core program: closed-loop $LOYAL points, risk vaults, cNFT coupons, soulbound badges"
+edition = "2021"
+license = "MIT"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "loyal_core"
+
+[features]
+default = []
+cpi = ["no-entrypoint"]
+no-entrypoint = []
+no-idl = []
+no-log-ix-name = []
+idl-build = ["anchor-lang/idl-build", "anchor-spl/idl-build"]
+# Deterministic price source for local tests: replaces Pyth reads with a
+# program-owned MockPrice account. NEVER enable for a devnet/mainnet build.
+mock-oracle = []
+
+[dependencies]
+anchor-lang = { version = "0.31.1", features = ["init-if-needed"] }
+anchor-spl = { version = "0.31.1" }
+pyth-solana-receiver-sdk = "=1.0.1"
+mpl-bubblegum = "2.1.1"
+spl-token-metadata-interface = "0.7.0"

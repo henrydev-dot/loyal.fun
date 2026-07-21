@@ -1,0 +1,41 @@
+{
+  "name": "loyal-fun",
+  "version": "0.1.0",
+  "private": true,
+  "description": "loyal.fun — degen-able closed-loop loyalty points on Solana (Token-2022 + cNFT coupons + Pyth risk vaults + soulbound badges)",
+  "license": "MIT",
+  "workspaces": [
+    "app",
+    "relayer"
+  ],
+  "scripts": {
+    "build:programs": "anchor build",
+    "test:programs": "anchor test",
+    "test:unit": "ts-mocha -p ./tsconfig.json -t 120000 tests/unit/**/*.test.ts",
+    "deploy:devnet": "anchor deploy --provider.cluster devnet && ts-node scripts/deploy.ts",
+    "vaults:devnet": "ts-node scripts/create_vaults.ts",
+    "seed:devnet": "ts-node scripts/seed_demo.ts",
+    "relayer": "npm --workspace relayer run dev",
+    "app": "npm --workspace app run dev"
+  },
+  "devDependencies": {
+    "@coral-xyz/anchor": "^0.31.1",
+    "@metaplex-foundation/mpl-bubblegum": "^4.2.1",
+    "@metaplex-foundation/umi": "^1.0.0",
+    "@metaplex-foundation/umi-bundle-defaults": "^1.0.0",
+    "@pythnetwork/hermes-client": "^2.0.0",
+    "@pythnetwork/pyth-solana-receiver": "^0.9.0",
+    "@solana/spl-token": "^0.4.9",
+    "@solana/web3.js": "^1.95.8",
+    "@types/bn.js": "^5.1.6",
+    "@types/chai": "^4.3.16",
+    "@types/mocha": "^10.0.7",
+    "@types/node": "^22.5.0",
+    "bn.js": "^5.2.1",
+    "chai": "^4.4.1",
+    "mocha": "^10.7.0",
+    "ts-mocha": "^10.0.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.5.4"
+  }
+}

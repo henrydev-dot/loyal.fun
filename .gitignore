@@ -1,0 +1,31 @@
+# Rust / Anchor
+target/
+.anchor/
+test-ledger/
+**/*.rs.bk
+
+# Node
+node_modules/
+.yarn/
+npm-debug.log*
+yarn-error.log
+
+# Next.js
+app/.next/
+app/out/
+app/next-env.d.ts
+
+# Env & secrets (demo keys in keys/ are devnet-only and intentionally committed)
+.env
+.env.local
+.env*.local
+relayer/.keys/
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/
+
+# Build outputs
+dist/
+*.tsbuildinfo
