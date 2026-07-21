@@ -31,9 +31,10 @@ jobs:
       - name: Install Solana toolchain
         run: |
           curl -sS -o /tmp/solana.tar.bz2 \
-            https://release.anza.xyz/v2.1.21/solana-release-x86_64-unknown-linux-gnu.tar.bz2
+            https://release.anza.xyz/stable/solana-release-x86_64-unknown-linux-gnu.tar.bz2
           tar xjf /tmp/solana.tar.bz2 -C /tmp
           echo "/tmp/solana-release/bin" >> "$GITHUB_PATH"
+          /tmp/solana-release/bin/cargo-build-sbf --version
 
       - name: Cache platform-tools and cargo registry
         uses: actions/cache@v4
