@@ -5,14 +5,14 @@ import Link from "next/link";
 import { getWallet } from "@/lib/wallet";
 import { fetchProfile, loyalBalance } from "@/lib/actions";
 import { explorerAddr } from "@/lib/config";
+import { IconChart, IconExternal, IconFlame, IconScan, LogoMark } from "@/components/icons";
 
-const TIERS = ["🥉 Bronze", "🥈 Silver", "🥇 Gold", "💎 Degen"];
+const TIERS = ["Bronze", "Silver", "Gold", "Degen"];
 
 export default function Home() {
   const [balance, setBalance] = useState<bigint | null>(null);
   const [profile, setProfile] = useState<any | null>(null);
   const [address, setAddress] = useState<string>("");
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const wallet = getWallet();
@@ -20,77 +20,84 @@ export default function Home() {
     loyalBalance(wallet.publicKey)
       .then(setBalance)
       .catch(() => setBalance(0n));
+    // No profile yet (or programs not deployed) simply means a fresh start.
     fetchProfile(wallet)
       .then(setProfile)
-      .catch((e) => setError(String(e)));
+      .catch(() => setProfile(null));
   }, []);
 
   return (
     <div className="space-y-4">
       <header className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">
-          loyal<span className="text-loyal">.fun</span>
-        </h1>
+        <div className="flex items-center gap-2.5">
+          <LogoMark size={30} />
+          <h1 className="text-2xl font-semibold">
+            loyal<span className="text-accent">.fun</span>
+          </h1>
+        </div>
         <a
           href={explorerAddr(address)}
           target="_blank"
           rel="noreferrer"
-          className="text-xs text-zinc-500 underline"
+          className="inline-flex items-center gap-1 text-xs text-faint hover:text-muted"
         >
           {address ? `${address.slice(0, 4)}…${address.slice(-4)}` : "…"}
+          <IconExternal size={11} />
         </a>
       </header>
 
-      <div className="card text-center py-8 space-y-2">
-        <p className="stat-label">your bag</p>
-        <p className="text-5xl font-bold text-loyal animate-pop">
-          {balance === null ? "…" : balance.toLocaleString()}
+      <div className="card text-center py-9 space-y-2 animate-rise">
+        <p className="stat-label">Balance</p>
+        <p className="font-display text-6xl font-semibold text-accent tracking-tight">
+          {balance === null ? "—" : balance.toLocaleString()}
         </p>
-        <p className="text-zinc-400">$LOYAL points</p>
+        <p className="text-muted text-sm">$LOYAL points</p>
         {profile && (
-          <div className="flex justify-center gap-6 pt-2 text-sm">
-            <span>
-              🔥 <b>{profile.streakDays}</b> day streak
+          <div className="flex justify-center gap-6 pt-3 text-sm text-muted">
+            <span className="inline-flex items-center gap-1.5">
+              <span className="text-accent">
+                <IconFlame size={16} />
+              </span>
+              <b className="text-ink">{profile.streakDays}</b>-day streak
             </span>
-            <span>{TIERS[profile.tier] ?? TIERS[0]}</span>
+            <span>
+              Tier: <b className="text-champagne">{TIERS[profile.tier] ?? TIERS[0]}</b>
+            </span>
           </div>
         )}
       </div>
 
-      {!profile && !error && (
-        <div className="card text-center text-zinc-400 text-sm">
-          Fresh wallet, zero baggage. Scan your first QR at the till and the
-          points start flowing — no seed phrase, no gas, no crypto homework.
+      {!profile && (
+        <div className="card text-sm text-muted leading-relaxed">
+          A fresh ledger. Scan your first code at the till and the points start
+          flowing — no seed phrase, no gas, nothing to configure.
         </div>
-      )}
-      {error && (
-        <div className="card border-dump/40 text-sm text-dump break-all">{error}</div>
       )}
 
       <div className="grid grid-cols-2 gap-3">
-        <Link href="/scan" className="btn-loyal">
-          📷 Scan &amp; Earn
+        <Link href="/scan" className="btn-primary">
+          <IconScan size={18} /> Scan &amp; earn
         </Link>
         <Link href="/degen" className="btn-ghost">
-          🎰 Ape the points
+          <IconChart size={18} /> Open a position
         </Link>
       </div>
 
       {profile && (
         <div className="card grid grid-cols-3 text-center divide-x divide-edge">
           <div>
-            <p className="stat-label">earned</p>
-            <p className="font-bold">{profile.earnedTotal.toString()}</p>
+            <p className="stat-label">Earned</p>
+            <p className="font-semibold pt-1">{profile.earnedTotal.toString()}</p>
           </div>
           <div>
-            <p className="stat-label">spent</p>
-            <p className="font-bold">{profile.spentTotal.toString()}</p>
+            <p className="stat-label">Spent</p>
+            <p className="font-semibold pt-1">{profile.spentTotal.toString()}</p>
           </div>
           <div>
-            <p className="stat-label">degen score</p>
+            <p className="stat-label">Score</p>
             <p
-              className={`font-bold ${
-                profile.degenScore.toNumber() >= 0 ? "text-pump" : "text-dump"
+              className={`font-semibold pt-1 ${
+                profile.degenScore.toNumber() >= 0 ? "text-gain" : "text-loss"
               }`}
             >
               {profile.degenScore.toString()}
@@ -99,8 +106,8 @@ export default function Home() {
         </div>
       )}
 
-      <p className="text-center text-xs text-zinc-600 pt-2">
-        closed-loop utility points · not money · no fiat off-ramp
+      <p className="text-center text-[11px] text-faint pt-2 tracking-wide">
+        Closed-loop utility points · not money · no fiat off-ramp
       </p>
     </div>
   );

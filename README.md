@@ -1,180 +1,254 @@
-# loyal.fun 🎰☕
+<p align="center">
+  <img src="app/public/icon.svg" width="88" alt="loyal.fun" />
+</p>
 
-> **Buy a coffee, earn points, long BONK with them, spend the wins on free coffee.**
+<h1 align="center">loyal.fun</h1>
 
-loyal.fun turns small-shop loyalty points into a living on-chain asset. Points are a **closed-loop Token-2022 mint** ($LOYAL) earned via merchant-signed QR codes, **degen-able** into synthetic Pyth-priced positions with 1x/2x/5x leverage, **spendable** on real-world rewards minted as **compressed-NFT coupons**, and **flexable** as **soulbound achievement badges** — including one for getting liquidated. 💀
+<p align="center"><b>Kupujesz kawę, zbierasz punkty, otwierasz nimi pozycję na BONK — wygraną płacisz za darmową kawę.</b></p>
 
-*Demo GIF placeholder — 90-second run-through: QR scan → +200 pts → 5x BONK long → close in profit → buy coffee coupon → burn-to-redeem at the till → "First Blood" badge drops.*
-
-**Live demo:** *URL placeholder (Vercel)* · **Network:** Solana Devnet
+<p align="center">
+  🇵🇱 Polski (ten plik) · <a href="README.en.md">🇬🇧 English</a>
+</p>
 
 ---
 
-## 1. The friction we kill
+loyal.fun zamienia punkty lojalnościowe małych sklepów w żywe aktywo na Solanie. Punkty to **zamknięty obieg Token-2022** ($LOYAL) zdobywany przez podpisane kody QR sprzedawcy, **stakowalny** w syntetyczne pozycje wyceniane oraklem Pyth (dźwignia 1×/2×/5×), **wydawalny** na prawdziwe nagrody bite jako **skompresowane NFT (cNFT)** i **kolekcjonowalny** jako odznaki **soulbound** — łącznie z odznaką za likwidację pozycji.
 
-Loyalty points today are **siloed static debt entries** in a merchant's database:
+**Live demo:** *(placeholder — Vercel URL)* · **Sieć:** Solana Devnet
 
-- **Boring.** A number that only goes up by 10 at a time. No reason to open the app.
-- **Siloed.** Café points are worthless at the barber next door.
-- **Opaque.** The merchant can devalue, expire, or delete them at will.
+## Zrzuty ekranu
 
-**Our novel mechanism:** points become a *live asset whose value the customer controls*. Stake them into **Risk Vaults** that track real asset prices (SOL, BTC, WIF, BONK) via Pyth — payout = `stake × clamp(1 + leverage × Δprice, 0, 5)`, settled by minting/burning points. No real asset is ever bought, no fiat off-ramp exists: it's a **closed-loop utility token**, which is exactly what keeps it out of exchange/e-money regulatory territory while keeping 100% of the dopamine. One $LOYAL mint is shared by every merchant (coalition model), coupons are cNFTs that **burn on redemption** (screenshot fraud is dead), and reputation is **soulbound** — your "Got Liquidated 💀" badge is forever.
+| Start | Skanowanie | Risk vaults |
+|---|---|---|
+| ![Home](docs/screenshots/home.png) | ![Scan](docs/screenshots/scan.png) | ![Degen](docs/screenshots/degen.png) |
 
-Retention stops being a discount program and becomes a game people *choose* to play.
+| Market nagród | Profil i odznaki | Panel sprzedawcy |
+|---|---|---|
+| ![Market](docs/screenshots/market.png) | ![Profile](docs/screenshots/profile.png) | ![Merchant](docs/screenshots/merchant.png) |
 
-## 2. Why only Solana makes this possible
+Aplikacja kliencka jest w języku angielskim (PWA, mobile-first); dashboard sprzedawcy działa pod `/merchant` na tablecie sklepu.
 
-- **Sub-cent fees, POS-scale throughput.** Issuing 50 points on a $3 coffee only works if the transaction costs ~$0.0002 and confirms while the milk is being steamed.
-- **Token-2022 extensions do the heavy lifting natively:**
-  - `TransferHook` → the closed loop is enforced *by the token itself* (wallet-to-wallet transfers are rejected by the `loyal_hook` whitelist program; no DEX dumping, no OTC karaborsa).
-  - `NonTransferable` → soulbound badges without a single line of custom transfer logic.
-  - `MetadataPointer` + `TokenMetadata` → branding lives inside the mint.
-- **State compression (Bubblegum cNFTs).** 16k coupons cost well under 1 SOL of rent, total. Coupon economics at "free coffee" scale are impossible with regular NFTs.
-- **Pyth pull oracle.** Sub-second institutional prices on-chain, with staleness and confidence checked at every open/close/liquidation.
-- **Ed25519 native program + instruction introspection.** The merchant's *off-chain* QR signature is verified *on-chain* — no backend of ours is trusted for issuance.
+## 1. Problem, który rozwiązujemy
 
-## 3. Architecture
+Dzisiejsze punkty lojalnościowe to **statyczne zapisy długu** w bazie sprzedawcy:
+
+- **Nudne.** Licznik rośnie o 10 na raz — nie ma powodu, żeby otwierać aplikację.
+- **Zamknięte w silosach.** Punkty z kawiarni są bezwartościowe u fryzjera obok.
+- **Nieprzejrzyste.** Sprzedawca może je w każdej chwili zdewaluować albo skasować.
+
+**Nasz mechanizm:** punkt staje się *aktywem, którego wartością steruje klient*. Wpłacasz punkty do **Risk Vaults** śledzących ceny SOL, BTC, WIF i BONK przez orakl Pyth — wypłata to `stake × clamp(1 + dźwignia × Δceny, 0, 5)`, rozliczana mintem/burnem punktów. Żadne prawdziwe aktywo nie jest kupowane, nie ma wypłaty do fiata: to **token użytkowy w zamkniętym obiegu**, co trzyma projekt z dala od reżimu giełdowego (MiCA), a zostawia całą frajdę. Jeden mint $LOYAL łączy wszystkich sprzedawców (model koalicyjny), kupony to cNFT **palone przy realizacji** (koniec z oszustwem na zrzut ekranu), a reputacja jest **soulbound** — odznaki „Liquidated" nie da się kupić ani sprzedać.
+
+## 2. Dlaczego tylko Solana to umożliwia
+
+- **Opłaty poniżej centa i przepustowość klasy POS.** Mint 50 punktów przy kawie za 3 € ma sens tylko przy koszcie ~0,0002 $ i potwierdzeniu, zanim barista spieni mleko.
+- **Rozszerzenia Token-2022 robią całą robotę natywnie:**
+  - `TransferHook` — zamknięty obieg egzekwuje *sam token* (program `loyal_hook` odrzuca transfery portfel→portfel; punktów nie da się wywieźć na DEX),
+  - `NonTransferable` — odznaki soulbound bez linijki własnej logiki transferu,
+  - `MetadataPointer` + `TokenMetadata` — branding wewnątrz minta.
+- **Kompresja stanu (Bubblegum cNFT).** 16 tysięcy kuponów kosztuje ułamek SOL czynszu. Ekonomia „darmowej kawy" nie spina się ze zwykłymi NFT.
+- **Pyth pull oracle.** Instytucjonalne ceny on-chain, ze sprawdzaną świeżością i przedziałem ufności przy każdym otwarciu/zamknięciu/likwidacji.
+- **Natywny program Ed25519 + introspekcja instrukcji.** Podpis QR sprzedawcy złożony *off-chain* jest weryfikowany *on-chain* — emisja punktów nie ufa żadnemu naszemu backendowi.
+
+## 3. Architektura
 
 ```mermaid
 flowchart LR
-  subgraph till["🏪 Merchant tablet"]
-    MP[Merchant panel<br/>signs 60s QR locally]
+  subgraph till["Tablet sprzedawcy"]
+    MP[Panel merchant<br/>podpisuje 60-sekundowe QR]
   end
-  subgraph phone["📱 Customer PWA"]
-    APP[Next.js app<br/>embedded burner wallet]
+  subgraph phone["PWA klienta"]
+    APP[Next.js<br/>wbudowany portfel burner]
   end
-  REL[Relayer<br/>fee payer + price poster]
+  REL[Relayer<br/>fee payer + publikacja cen]
   subgraph solana["Solana Devnet"]
     CORE[loyal_core]
-    HOOK[loyal_hook<br/>transfer whitelist]
-    T22[Token-2022<br/>$LOYAL + badges]
-    BGUM[Bubblegum<br/>coupon cNFTs]
+    HOOK[loyal_hook<br/>whitelista transferów]
+    T22[Token-2022<br/>$LOYAL + odznaki]
+    BGUM[Bubblegum<br/>kupony cNFT]
     PYTH[Pyth receiver<br/>PriceUpdateV2]
   end
   HERMES[Pyth Hermes]
 
-  MP -->|QR: signed payload| APP
-  APP -->|partially-signed tx| REL -->|sponsored tx| CORE
-  CORE -->|mint/burn CPI| T22 -->|Execute hook| HOOK
-  CORE -->|mint/burn coupon CPI| BGUM
-  CORE -->|read price| PYTH
-  HERMES -->|price updates| REL -->|post| PYTH
+  MP -->|QR: podpisany payload| APP
+  APP -->|częściowo podpisana tx| REL -->|sponsorowana tx| CORE
+  CORE -->|CPI mint/burn| T22 -->|hook Execute| HOOK
+  CORE -->|CPI mint/burn kuponu| BGUM
+  CORE -->|odczyt ceny| PYTH
+  HERMES -->|aktualizacje cen| REL -->|publikacja| PYTH
 ```
 
-### Accounts (all PDAs)
+### Konta (wszystkie PDA)
 
-| Account | Seeds | Purpose |
+| Konto | Seeds | Rola |
 |---|---|---|
-| `Config` | `["config"]` | admin, mint, fee_bps, leverage/stake/issuance/exposure caps, `paused` |
-| `Merchant` | `["merchant", authority]` | name, rotating `qr_signer`, issuance counters, reward budget |
-| `UserProfile` | `["user", wallet]` | earned/spent, streak, tier, degen_score, badge bitmaps |
-| `IssuanceNonce` | `["nonce", merchant, nonce]` | replay guard — `init` fails on second use |
-| `RiskVault` | `["vault", symbol]` | Pyth feed id, exposure, per-position cap |
-| `Position` | `["position", user, vault, id]` | stake, entry price (1e6), leverage, status |
-| `RewardListing` | `["listing", merchant, id]` | title, price, stock, coupon metadata URI |
-| `RedemptionReceipt` | `["receipt", asset_id]` | proof a coupon burned — one per asset, ever |
-| `MockPrice` | `["mock-price", vault]` | deterministic test oracle (`mock-oracle` builds only) |
+| `Config` | `["config"]` | admin, mint, fee_bps, limity dźwigni/stake'a/emisji/ekspozycji, `paused` |
+| `Merchant` | `["merchant", authority]` | nazwa, rotowalny `qr_signer`, liczniki emisji, budżet nagród |
+| `UserProfile` | `["user", wallet]` | earned/spent, streak, tier, degen_score, bitmapy odznak |
+| `IssuanceNonce` | `["nonce", merchant, nonce]` | ochrona przed replay — drugi `init` się nie uda |
+| `RiskVault` | `["vault", symbol]` | id feedu Pyth, ekspozycja, limit na pozycję |
+| `Position` | `["position", user, vault, id]` | stake, cena wejścia (1e6), dźwignia, status |
+| `RewardListing` | `["listing", merchant, id]` | tytuł, cena, stan, URI metadanych kuponu |
+| `RedemptionReceipt` | `["receipt", asset_id]` | dowód spalenia kuponu — jeden na asset, na zawsze |
+| `MockPrice` | `["mock-price", vault]` | deterministyczny orakl testowy (tylko build `mock-oracle`) |
 
-### Instructions
+### Instrukcje
 
-| Instruction | Access | Notes |
+| Instrukcja | Dostęp | Uwagi |
 |---|---|---|
-| `initialize_config` | admin | creates $LOYAL (Token-2022: TransferHook + Metadata), authority = config PDA |
-| `register_merchant` / `update_merchant_signer` / `set_merchant_active` | merchant / admin | hot QR key is rotatable |
-| `issue_points` | anyone w/ valid QR | **ed25519 introspection** + nonce PDA + expiry + per-tx cap |
-| `create_vault` / `set_vault_active` | admin | binds a Pyth feed id |
-| `open_position` | user (CPI-friendly) | burns stake, records Pyth entry (staleness + confidence checked), exposure caps |
-| `close_position` | position owner | `payout = stake × clamp(1 + L·Δ, 0, 5)`, 2% fee burned, mints net |
-| `liquidate_position` | **anyone** | permissionless crank at ≤0.2x; 1% bounty; owner earns 💀 badge |
-| `create_listing` | any merchant | listings are public PDAs — other dApps can list rewards |
-| `buy_reward` | user | burns price, Bubblegum `mint_v1` CPI mints coupon cNFT |
-| `redeem_reward` | user **+** merchant | dual-signature burn CPI + `RedemptionReceipt` |
-| `claim_badge` | user | lazily creates a NonTransferable Token-2022 badge mint, mints 1 |
-| `set_paused` / `set_coupon_tree` | admin | emergency stop / tree wiring |
+| `initialize_config` | admin | tworzy $LOYAL (Token-2022: TransferHook + Metadata), authority = config PDA |
+| `register_merchant` / `update_merchant_signer` / `set_merchant_active` | merchant / admin | gorący klucz QR można rotować |
+| `issue_points` | każdy z ważnym QR | **introspekcja ed25519** + nonce PDA + expiry + limit na tx |
+| `create_vault` / `set_vault_active` | admin | wiąże feed Pyth |
+| `open_position` | użytkownik (przyjazne CPI) | pali stake, zapisuje cenę wejścia (świeżość + ufność), limity ekspozycji |
+| `close_position` | właściciel pozycji | `payout = stake × clamp(1 + L·Δ, 0, 5)`, 2% fee spalane |
+| `liquidate_position` | **każdy** | permissionless crank przy ≤0,2×; 1% bounty; właściciel dostaje odznakę |
+| `create_listing` | każdy merchant | listingi to publiczne PDA — inne dAppy mogą wystawiać nagrody |
+| `buy_reward` | użytkownik | pali cenę, CPI Bubblegum `mint_v1` bije kupon cNFT |
+| `redeem_reward` | użytkownik **+** merchant | podwójny podpis, burn CPI + `RedemptionReceipt` |
+| `claim_badge` | użytkownik | leniwie tworzy mint NonTransferable, bije 1 sztukę |
+| `set_paused` / `set_coupon_tree` | admin | wyłącznik awaryjny / podpięcie drzewa |
 
-Every state change emits an Anchor event (`PointsIssued`, `PositionOpened/Closed/Liquidated`, `RewardPurchased/Redeemed`, `BadgeClaimed`) for indexers and composers.
+Każda zmiana stanu emituje event Anchora (`PointsIssued`, `PositionOpened/Closed/Liquidated`, `RewardPurchased/Redeemed`, `BadgeClaimed`).
 
-## 4. Tradeoffs & constraints (what we chose and why)
+## 4. Kompromisy projektowe
 
-- **Synthetic vs real assets.** Buying real BTC/memecoins with points makes you an exchange (MiCA, licensing, KYC). Synthetic positions keep points closed-loop — *no custody, no off-ramp, no order books* — while price exposure (the fun part) is identical. Tradeoff: winnings are minted, so the token is inflationary on the win side; controlled by the 5x clamp, per-position and global exposure caps, and the 2% settlement fee burn (net deflationary pressure on every settle).
-- **Mint/burn escrow model.** Stakes are *burned* on open and settlements *minted* on close, instead of held in an escrow token account. Simpler invariants (supply = circulating points, always), no transfer-hook resolution needed for program-internal moves (mint/burn bypass hooks by design), and the Position PDA is the audit record.
-- **Transfer-hook complexity.** The hook + whitelist works, but the wiring (ExtraAccountMetaList, hook-aware clients) is the most fragile part of Token-2022 tooling. Because the protocol itself only mints/burns, the demo remains fully functional even if a wallet can't resolve hook accounts; the fallback design (documented, not silently dropped) would be `Permanent Delegate` + program-owned accounts.
-- **Devnet Pyth feeds.** Pull-oracle updates must be *posted* before reads. The relayer posts fresh `PriceUpdateV2`s on demand (`POST /price/:symbol`); tests use a compile-time `mock-oracle` feature (never in release builds) for deterministic PnL vectors.
-- **Demo-grade key management.** Burner keypairs in localStorage, QR-signer on the tablet, relayer keys in env vars. Production: Privy/Web3Auth embedded wallets, HSM/passkey-backed merchant signers — the interfaces are already isolated (`lib/wallet.ts`, relayer).
-- **Coupon→listing matching** in the redemption flow is by title (demo). Production would bake the listing id into the cNFT URI.
+- **Syntetyki zamiast prawdziwych aktywów.** Kupowanie prawdziwego BTC za punkty robi z projektu giełdę (licencje, KYC). Pozycje syntetyczne trzymają punkty w zamkniętym obiegu — *bez custody, bez off-rampu* — a ekspozycja cenowa (czyli emocje) jest identyczna. Koszt: wygrane są mintowane, więc strona wygrywająca jest inflacyjna; kontrolują to clamp 5×, limity ekspozycji per pozycja i globalne oraz spalane 2% fee.
+- **Model escrow mint/burn.** Stake jest *palony* przy otwarciu i *mintowany* przy rozliczeniu, zamiast leżeć na koncie escrow. Prostsze inwarianty (podaż = punkty w obiegu, zawsze), zero rozwiązywania transfer-hooków w ruchach wewnętrznych (mint/burn ich nie wywołuje), a PDA pozycji jest zapisem audytowym.
+- **Złożoność transfer-hooka.** Hook z whitelistą działa, ale okablowanie (ExtraAccountMetaList, klienci świadomi hooków) to najkruchszy region narzędzi Token-2022. Ponieważ protokół sam tylko mintuje/pali, demo działa nawet gdy portfel nie umie rozwiązać kont hooka; udokumentowany fallback to `Permanent Delegate` + konta programowe.
+- **Feedy Pyth na devnecie.** Aktualizacje pull-oracle trzeba najpierw *opublikować*. Relayer publikuje świeże `PriceUpdateV2` na żądanie (`POST /price/:symbol`); testy używają kompilowanej flagi `mock-oracle` (nigdy w buildzie produkcyjnym).
+- **Klucze klasy demo.** Burner w localStorage, klucz QR na tablecie, klucze relayera w env. Produkcja: portfele embedded (Privy/Web3Auth), podpisy sprzedawcy w HSM/passkey — interfejsy są już odseparowane.
+- **Dopasowanie kupon→listing** przy realizacji jest po tytule (demo). Produkcyjnie id listingu trafiłoby do URI kuponu.
 
-## 5. Devnet deployment
+## 5. Wdrożenie na devnecie
 
-| Program | Address |
+| Program | Adres |
 |---|---|
 | `loyal_core` | [`CF5FkJ9GKoFk3SMkBZuXgGnXwfN6TETs5eAYS7V6gggr`](https://explorer.solana.com/address/CF5FkJ9GKoFk3SMkBZuXgGnXwfN6TETs5eAYS7V6gggr?cluster=devnet) |
 | `loyal_hook` | [`CjEcibq2LtkMJHEZ6wiiFFRNPXC4rd5xaCdEowWqW5GM`](https://explorer.solana.com/address/CjEcibq2LtkMJHEZ6wiiFFRNPXC4rd5xaCdEowWqW5GM?cluster=devnet) |
 
-### Demo transactions
+### Transakcje demo
 
-`scripts/seed_demo.ts` runs the full loop and prints this table ready to paste:
+`scripts/seed_demo.ts` wykonuje pełną pętlę i drukuje poniższą tabelę gotową do wklejenia:
 
-| Action | Transaction |
+| Akcja | Transakcja |
 |---|---|
-| `issue_points` (+2000 $LOYAL via signed QR) | *run `npm run seed:devnet`* |
-| `open_position` (5x long BONK) | *…* |
-| `close_position` (PnL settled, 2% burned) | *…* |
-| `buy_reward` (coffee coupon cNFT minted) | *…* |
-| `redeem_reward` (coupon burned + receipt) | *…* |
-| `claim_badge` ("First Blood" soulbound) | *…* |
+| `issue_points` (+2000 $LOYAL przez podpisany QR) | *uruchom `npm run seed:devnet`* |
+| `open_position` (5× long BONK) | *…* |
+| `close_position` (rozliczenie PnL, 2% spalone) | *…* |
+| `buy_reward` (kupon na kawę jako cNFT) | *…* |
+| `redeem_reward` (kupon spalony + paragon) | *…* |
+| `claim_badge` („First Blood", soulbound) | *…* |
 
-> ⚠️ Replace this table with the actual `seed_demo.ts` output after deploying — the script prints exactly these rows with live Explorer links.
+> Po wdrożeniu zastąp tę tabelę faktycznym outputem `seed_demo.ts` — linki do Explorera są **wymogiem konkursu**.
 
-## 6. Running it
+## 6. Instalacja i uruchomienie
+
+Wymagania: Rust, Solana CLI ≥ 1.18, Anchor **0.31.1**, Node 20+.
 
 ```bash
-# Prereqs: Rust, Solana CLI ≥1.18, Anchor 0.31.1, Node 20+
 npm install
 
-# Programs
-anchor build                      # or: anchor build -- --features mock-oracle (for tests)
-cargo test                        # Rust unit tests: PnL math, oracle scaling (15 tests)
-npm run test:unit                 # TS mirror of the settlement math (11 tests)
-anchor test --skip-build          # integration suite on a local validator (mock oracle)
+# Programy
+anchor build                      # do testów: anchor build -- --features mock-oracle
+cargo test                        # testy jednostkowe Rust: matematyka PnL, skalowanie cen (15)
+npm run test:unit                 # lustrzane testy TS rozliczeń (11)
+anchor test --skip-build          # suite integracyjna na lokalnym walidatorze
 
 # Devnet
 anchor deploy --provider.cluster devnet
-npx ts-node scripts/deploy.ts     # config + mint + hook whitelist + coupon tree + demo merchant
-npx ts-node scripts/create_vaults.ts   # SOL / BTC / WIF / BONK vaults
-npx ts-node scripts/seed_demo.ts       # full happy path, prints Explorer links
-npm run sync-idl                  # copies target/idl into the app
+npx ts-node scripts/deploy.ts          # config + mint + whitelist hooka + drzewo kuponów + merchant demo
+npx ts-node scripts/create_vaults.ts   # vaulty SOL / BTC / WIF / BONK
+npx ts-node scripts/seed_demo.ts       # pełny happy path, drukuje linki do Explorera
+npm run sync-idl                       # kopiuje IDL do aplikacji
 
-# Services
-cp relayer/.env.example relayer/.env   # add FEE_PAYER_SECRET + values printed by deploy.ts
+# Usługi
+cp relayer/.env.example relayer/.env   # uzupełnij FEE_PAYER_SECRET + wartości z deploy.ts
 npm run relayer                        # :8787
 cp app/.env.local.example app/.env.local
-npm run app                            # :3000 (customer) + /merchant (shop tablet)
+npm run app                            # :3000 (klient) + /merchant (tablet sklepu)
 ```
 
-**Test coverage:** ed25519 QR verification (happy path, replay, expiry, wrong signer, tampered payload, cap), PnL math (win/loss/clamps/fee/rounding, on-chain and client mirrored), liquidation threshold + permissionless crank + bounty, listing creation, pause switch.
+## 7. Jak przetestować system (krok po kroku)
 
-## 7. Composability
+### 7.1. Szybkie testy lokalne (bez devnetu)
 
-loyal.fun is deliberately a *platform*, not an app:
-
-- **One mint, many merchants.** Any registered shop issues and honors the same $LOYAL. `create_listing` is open to every merchant — a barber can list "free fade" next to the café's espresso.
-- **Open CPI surface.** `open_position` / `close_position` / `buy_reward` take no privileged signers beyond the user: any game or dApp can CPI in and let players stake loyalty points ("spin the wheel" games, in-app boosts). `liquidate_position` is a permissionless crank — keeper bots earn 1% by watching Pyth.
-- **Events as an API.** Every action emits a typed Anchor event; leaderboards, analytics and quest systems can index without touching accounts.
-- **Standards, not custom registries.** Badges are plain NonTransferable Token-2022 mints — any token-gating tool (Discord bots, allowlists) reads them today. Coupons are standard Bubblegum cNFTs — visible in any DAS-indexed wallet.
-- **Public read model.** Listings, vaults, positions and profiles are all deterministic PDAs documented above; forks and frontends need no permission.
-
----
-
-### Repo layout
-
-```
-programs/loyal_core/   main Anchor program (points, vaults, marketplace, badges)
-programs/loyal_hook/   Token-2022 transfer hook (closed-loop whitelist)
-app/                   Next.js 14 PWA — customer app + /merchant dashboard
-relayer/               fee-payer + QR signer + Pyth price poster (Express)
-tests/                 integration suite + deterministic PnL unit tests
-scripts/               deploy / create_vaults / seed_demo (prints Explorer links)
-keys/                  devnet program keypairs (demo-grade, intentionally committed)
+```bash
+cargo test               # 15 testów: PnL (wygrana/strata/clampy/fee), progi likwidacji, skalowanie Pyth
+npm run test:unit        # 11 testów TS — te same wektory co on-chain, wykrywa dryf klient/program
+anchor build -- --features mock-oracle
+anchor test --skip-build # integracja: QR (replay/expiry/zły podpis/podmieniony payload/limit),
+                         # pozycje (wygrana 5×, strata 2×, clamp, fee), likwidacja + bounty, pauza
 ```
 
-*Closed-loop utility token. Not money. No fiat off-ramp. DYOR on your own coffee.* ☕
+### 7.2. Portfel z Phantoma (masz devnetowe SOL w Phantomie)
+
+Phantom eksportuje klucz prywatny jako ciąg base58; CLI Solany oczekuje tablicy JSON. W repo jest konwerter:
+
+1. W Phantomie: **Settings → Manage Accounts → (konto) → Show Private Key** — skopiuj ciąg base58.
+2. W terminalu:
+
+```bash
+npx ts-node scripts/phantom_to_keypair.ts <KLUCZ_BASE58> ~/.config/solana/id.json
+solana address            # musi pokazać adres konta z Phantoma
+solana balance --url devnet
+history -c                # wyczyść historię shella — wkleiłeś klucz prywatny
+```
+
+> Używaj wyłącznie konta devnetowego. Alternatywa bez eksportu klucza: `solana-keygen new` i przelej 2–3 SOL z Phantoma na nowy adres.
+
+### 7.3. Pełny test na devnecie
+
+1. **Deploy + bootstrap** — sekcja 6 (`anchor deploy`, `deploy.ts`, `create_vaults.ts`).
+2. **Seed demo:** `RPC_URL=https://devnet.helius-rpc.com/?api-key=<KLUCZ> npx ts-node scripts/seed_demo.ts` — realizacja kuponu wymaga RPC z DAS (darmowy Helius devnet); bez niego krok redeem zostanie pominięty z ostrzeżeniem.
+3. **Relayer:** uzupełnij `relayer/.env` (`FEE_PAYER_SECRET` = keypair z devnet SOL, `MERCHANT_PDA` i `MERCHANT_QR_SECRET` z outputu `deploy.ts`), potem `npm run relayer`. Sprawdź: `curl localhost:8787/health`.
+4. **Aplikacja:** uzupełnij `app/.env.local` (RPC z DAS, adres relayera), `npm run sync-idl`, `npm run app`.
+
+### 7.4. Przeklikanie aplikacji (dwa urządzenia lub dwa okna przeglądarki)
+
+**Okno A — sklep (`/merchant`):**
+1. Zarejestruj sklep (jedno kliknięcie; opłaty idą przez relayer).
+2. Zakładka **Rewards** — dodaj listing, np. „1 Free Coffee" za 500 pkt.
+3. Zakładka **New sale** — ustaw kwotę (10 € → 100 pkt) i wygeneruj QR. Kod żyje 60 s.
+
+**Okno B — klient (strona główna):**
+4. **Scan & earn** — zeskanuj QR z okna A (bez kamery: „Paste the QR payload"). Powinno pojawić się `+100 LOYAL` i wpis w Activity z linkiem do Explorera.
+5. Spróbuj zeskanować **ten sam** QR drugi raz → transakcja musi zostać odrzucona (ochrona nonce przed replay).
+6. **Degen** — wybierz vault, ustaw stake i dźwignię 5×, otwórz pozycję; obserwuj live PnL i linię likwidacji; zamknij pozycję. Saldo zmienia się o `clamp(1+5Δ,0,5)` minus 2% fee.
+7. **Market** — kup kupon; pojawi się w „My coupons" (wymaga RPC z DAS).
+8. Dotknij kuponu → pokaże się QR realizacji (częściowo podpisana transakcja, ważna ~60–90 s).
+
+**Okno A — sklep:**
+9. Zakładka **Redeem** — zeskanuj QR klienta. Kupon spala się on-chain; licznik „Redeemed" rośnie. Ten sam kupon drugi raz nie przejdzie.
+
+**Okno B — klient:**
+10. **Profile** — odbierz odznakę „First Blood" (po pierwszym rozliczeniu pozycji). Odznaka jest NonTransferable — spróbuj wysłać ją z dowolnego portfela i patrz, jak transfer się nie udaje.
+
+### 7.5. Weryfikacja on-chain (Explorer, cluster=devnet)
+
+- Transakcja `issue_points`: instrukcja #1 to natywny **Ed25519 verify**, #2 to program; w logach `PointsIssued`.
+- Mint $LOYAL: rozszerzenia **TransferHook** i **TokenMetadata** widoczne w zakładce tokena.
+- Po `close_position`: w logach event z `fee_burned` > 0; podaż minta spada o fee.
+- Po `redeem_reward`: istnieje PDA `RedemptionReceipt` dla asset id kuponu; drugi redeem = błąd `already in use`.
+- Odznaka: mint z rozszerzeniem **NonTransferable**, decimals 0, saldo 1.
+
+## 8. Kompozycyjność
+
+- **Jeden mint, wielu sprzedawców.** Każdy zarejestrowany sklep emituje i honoruje te same $LOYAL; `create_listing` jest otwarte dla wszystkich.
+- **Otwarta powierzchnia CPI.** `open_position` / `buy_reward` nie wymagają uprzywilejowanych podpisów — dowolna gra może wywołać je przez CPI. `liquidate_position` to permissionless crank z bounty 1% dla botów.
+- **Eventy jako API.** Leaderboardy i systemy questów indeksują eventy bez czytania kont.
+- **Standardy zamiast rejestrów.** Odznaki czyta każde narzędzie token-gatingu; kupony widzi każdy portfel z DAS.
+
+## Struktura repozytorium
+
+```
+programs/loyal_core/   główny program Anchor (punkty, vaulty, market, odznaki)
+programs/loyal_hook/   transfer hook Token-2022 (whitelista zamkniętego obiegu)
+app/                   PWA Next.js 14 — aplikacja klienta + /merchant
+relayer/               fee payer + podpisy QR + publikacja cen Pyth (Express)
+tests/                 suite integracyjna + deterministyczne testy PnL
+scripts/               deploy / create_vaults / seed_demo / phantom_to_keypair
+docs/screenshots/      zrzuty ekranu użyte wyżej
+keys/                  devnetowe keypairy programów (celowo w repo, klasa demo)
+```
+
+*Token użytkowy w zamkniętym obiegu. To nie pieniądz. Bez wypłaty do fiata.*

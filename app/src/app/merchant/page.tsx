@@ -18,10 +18,19 @@ import QRCode from "qrcode";
 import nacl from "tweetnacl";
 import { getMerchantWallet, getMerchantQrSigner } from "@/lib/wallet";
 import { getProgram } from "@/lib/program";
-import { connection, sendSponsored } from "@/lib/relayer";
+import { sendSponsored } from "@/lib/relayer";
 import { configPda } from "@/lib/pdas";
-import { CORE_PROGRAM_ID, explorerTx } from "@/lib/config";
+import { CORE_PROGRAM_ID } from "@/lib/config";
 import TxToast from "@/components/TxToast";
+import {
+  IconAlert,
+  IconGift,
+  IconReceipt,
+  IconScan,
+  IconStore,
+  IconTicket,
+  LogoMark,
+} from "@/components/icons";
 
 const merchantPda = (authority: PublicKey) =>
   PublicKey.findProgramAddressSync(
@@ -39,6 +48,12 @@ const listingPda = (merchant: PublicKey, listingId: bigint) => {
 };
 
 type Tab = "sale" | "rewards" | "redeem";
+
+const TAB_META: Array<{ key: Tab; label: string; Icon: typeof IconReceipt }> = [
+  { key: "sale", label: "New sale", Icon: IconReceipt },
+  { key: "rewards", label: "Rewards", Icon: IconGift },
+  { key: "redeem", label: "Redeem", Icon: IconTicket },
+];
 
 export default function MerchantPage() {
   const [tab, setTab] = useState<Tab>("sale");
@@ -62,10 +77,10 @@ export default function MerchantPage() {
   const scannerRef = useRef<any>(null);
 
   const refresh = useCallback(async () => {
-    const wallet = getMerchantWallet();
-    const program = await getProgram(wallet);
-    const merchant = merchantPda(wallet.publicKey);
     try {
+      const wallet = getMerchantWallet();
+      const program = await getProgram(wallet);
+      const merchant = merchantPda(wallet.publicKey);
       const state = await (program.account as any).merchant.fetch(merchant);
       setMerchantState(state);
       const all = await (program.account as any).rewardListing.all([
@@ -73,6 +88,7 @@ export default function MerchantPage() {
       ]);
       setListings(all);
     } catch {
+      // Not registered yet (or programs not deployed) -> onboarding screen.
       setMerchantState(null);
     }
   }, []);
@@ -109,7 +125,7 @@ export default function MerchantPage() {
         })
         .instruction();
       const signature = await sendSponsored([ix], [wallet]);
-      setToast({ message: "Shop registered on-chain 🏪", signature });
+      setToast({ message: "Shop registered on-chain", signature });
       await refresh();
     } catch (err) {
       setError(String(err));
@@ -172,7 +188,7 @@ export default function MerchantPage() {
         })
         .instruction();
       const signature = await sendSponsored([ix], [wallet]);
-      setToast({ message: `Listed "${newTitle}" 🎁`, signature });
+      setToast({ message: `Listed "${newTitle || "1 Free Coffee"}"`, signature });
       setNewTitle("");
       await refresh();
     } catch (err) {
@@ -212,7 +228,7 @@ export default function MerchantPage() {
           );
           const body = await res.json();
           if (!res.ok) throw new Error(body.error ?? "sponsor failed");
-          setToast({ message: "Coupon burned — enjoy! ☕", signature: body.signature });
+          setToast({ message: "Coupon burned — redeemed", signature: body.signature });
           await refresh();
         } catch (err) {
           setError(String(err));
@@ -225,18 +241,22 @@ export default function MerchantPage() {
   useEffect(() => () => scannerRef.current?.stop().catch(() => undefined), []);
 
   if (merchantState === undefined) {
-    return <p className="text-zinc-500 text-sm pt-10 text-center">loading…</p>;
+    return <p className="text-faint text-sm pt-10 text-center">Loading…</p>;
   }
 
   if (merchantState === null) {
     return (
       <div className="space-y-4 pt-6">
-        <h1 className="text-2xl font-bold">
-          loyal<span className="text-loyal">.fun</span> for shops
-        </h1>
-        <p className="text-sm text-zinc-400">
-          Register once. Your tablet becomes the loyalty terminal: signed QRs
-          per sale, zero extra hardware, points customers actually care about.
+        <div className="flex items-center gap-2.5">
+          <LogoMark size={30} />
+          <h1 className="text-2xl font-semibold">
+            loyal<span className="text-accent">.fun</span>{" "}
+            <span className="text-muted font-body text-base font-normal">for shops</span>
+          </h1>
+        </div>
+        <p className="text-sm text-muted leading-relaxed">
+          Register once. Your tablet becomes the loyalty terminal — a signed QR
+          per sale, no extra hardware, points customers actually care about.
         </p>
         <input
           className="input"
@@ -245,39 +265,48 @@ export default function MerchantPage() {
           onChange={(e) => setName(e.target.value)}
           maxLength={32}
         />
-        <button onClick={register} disabled={busy} className="btn-loyal w-full">
-          {busy ? "registering…" : "Register shop on Solana"}
+        <button onClick={register} disabled={busy} className="btn-primary w-full">
+          <IconStore size={18} />
+          {busy ? "Registering…" : "Register shop on Solana"}
         </button>
-        {error && <div className="card border-dump/40 text-sm text-dump break-all">{error}</div>}
+        {error && (
+          <div className="card border-loss/40 text-sm text-loss break-all flex gap-2">
+            <span className="shrink-0 pt-0.5">
+              <IconAlert size={16} />
+            </span>
+            {error}
+          </div>
+        )}
       </div>
     );
   }
 
   return (
     <div className="space-y-4">
-      <header className="flex items-baseline justify-between">
-        <h1 className="text-xl font-bold">🏪 {merchantState.name}</h1>
-        <span className="text-xs text-zinc-500">
-          issued: {merchantState.totalIssued.toString()} pts
+      <header className="flex items-center justify-between">
+        <span className="flex items-center gap-2.5">
+          <span className="text-accent">
+            <IconStore size={22} />
+          </span>
+          <h1 className="text-xl font-semibold">{merchantState.name}</h1>
+        </span>
+        <span className="text-xs text-faint tabular-nums">
+          {merchantState.totalIssued.toString()} pts issued
         </span>
       </header>
 
       <div className="flex gap-2">
-        {(
-          [
-            ["sale", "💶 New Sale"],
-            ["rewards", "🎁 Rewards"],
-            ["redeem", "🎟️ Redeem"],
-          ] as Array<[Tab, string]>
-        ).map(([key, label]) => (
+        {TAB_META.map(({ key, label, Icon }) => (
           <button
             key={key}
             onClick={() => setTab(key)}
             className={`flex-1 btn !py-2 text-sm ${
-              tab === key ? "bg-loyal text-black" : "border border-edge text-zinc-300"
+              tab === key
+                ? "bg-accent text-bg"
+                : "border border-edge text-muted hover:text-ink"
             }`}
           >
-            {label}
+            <Icon size={16} /> {label}
           </button>
         ))}
       </div>
@@ -285,10 +314,11 @@ export default function MerchantPage() {
       {tab === "sale" && (
         <div className="card space-y-4">
           <div>
-            <div className="flex justify-between text-sm text-zinc-400 mb-1">
-              <span>sale amount</span>
-              <span>
-                <b className="text-loyal">{amount}€</b> → {amount * 10} pts
+            <div className="flex justify-between text-sm text-muted mb-2">
+              <span>Sale amount</span>
+              <span className="tabular-nums">
+                <b className="text-accent">{amount} €</b>
+                <span className="text-faint"> → {amount * 10} pts</span>
               </span>
             </div>
             <input
@@ -297,18 +327,17 @@ export default function MerchantPage() {
               max={100}
               value={amount}
               onChange={(e) => setAmount(Number(e.target.value))}
-              className="w-full accent-lime-400"
             />
           </div>
-          <button onClick={newSale} className="btn-loyal w-full">
-            Generate sale QR
+          <button onClick={newSale} className="btn-primary w-full">
+            <IconReceipt size={18} /> Generate sale QR
           </button>
           {saleQr && (
             <div className="text-center space-y-2">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={saleQr} alt="sale QR" className="rounded-xl mx-auto w-64 h-64" />
-              <p className="text-sm text-zinc-400">
-                customer scans within <b className="text-loyal">{countdown}s</b>
+              <img src={saleQr} alt="sale QR" className="rounded-lg mx-auto w-64 h-64" />
+              <p className="text-sm text-muted">
+                Valid for <b className="text-accent tabular-nums">{countdown}s</b>
               </p>
             </div>
           )}
@@ -327,8 +356,8 @@ export default function MerchantPage() {
               maxLength={48}
             />
             <div className="flex gap-2">
-              <label className="flex-1 text-xs text-zinc-500">
-                price (pts)
+              <label className="flex-1 text-xs text-faint">
+                Price (pts)
                 <input
                   type="number"
                   className="input mt-1"
@@ -336,8 +365,8 @@ export default function MerchantPage() {
                   onChange={(e) => setNewPrice(Number(e.target.value))}
                 />
               </label>
-              <label className="flex-1 text-xs text-zinc-500">
-                stock
+              <label className="flex-1 text-xs text-faint">
+                Stock
                 <input
                   type="number"
                   className="input mt-1"
@@ -346,14 +375,17 @@ export default function MerchantPage() {
                 />
               </label>
             </div>
-            <button onClick={createListing} disabled={busy} className="btn-loyal w-full">
+            <button onClick={createListing} disabled={busy} className="btn-primary w-full">
               {busy ? "…" : "Create listing"}
             </button>
           </div>
           {listings.map((listing) => (
-            <div key={listing.publicKey.toBase58()} className="card flex justify-between text-sm">
+            <div
+              key={listing.publicKey.toBase58()}
+              className="card flex justify-between text-sm"
+            >
               <span>{listing.account.title}</span>
-              <span className="text-zinc-500">
+              <span className="text-faint tabular-nums">
                 {listing.account.pricePoints.toString()} pts · {listing.account.stock} left
               </span>
             </div>
@@ -363,21 +395,31 @@ export default function MerchantPage() {
 
       {tab === "redeem" && (
         <div className="space-y-3">
-          <p className="text-sm text-zinc-400">
-            Scan the coupon QR on the customer&apos;s phone. You co-sign the burn:
-            the coupon can never be used twice.
+          <p className="text-sm text-muted leading-relaxed">
+            Scan the coupon QR on the customer&apos;s phone. Your signature burns
+            the coupon on-chain — it can never be used twice.
           </p>
-          <div id="redeem-region" className="rounded-2xl overflow-hidden border border-edge min-h-[100px]" />
-          <button onClick={startRedeemScanner} className="btn-loyal w-full">
-            📷 Scan coupon
+          <div
+            id="redeem-region"
+            className="rounded-xl overflow-hidden border border-edge min-h-[100px]"
+          />
+          <button onClick={startRedeemScanner} className="btn-primary w-full">
+            <IconScan size={18} /> Scan coupon
           </button>
-          <p className="text-xs text-zinc-600">
-            redeemed so far: {merchantState.couponsRedeemed.toString()}
+          <p className="text-xs text-faint tabular-nums">
+            Redeemed so far: {merchantState.couponsRedeemed.toString()}
           </p>
         </div>
       )}
 
-      {error && <div className="card border-dump/40 text-sm text-dump break-all">{error}</div>}
+      {error && (
+        <div className="card border-loss/40 text-sm text-loss break-all flex gap-2">
+          <span className="shrink-0 pt-0.5">
+            <IconAlert size={16} />
+          </span>
+          {error}
+        </div>
+      )}
       {toast && (
         <TxToast
           message={toast.message}

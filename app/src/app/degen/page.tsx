@@ -14,6 +14,7 @@ import { RELAYER_URL, VAULTS } from "@/lib/config";
 import { vaultPda } from "@/lib/pdas";
 import { recordTx } from "@/lib/history";
 import TxToast from "@/components/TxToast";
+import { AssetMark, IconAlert, IconBolt } from "@/components/icons";
 
 const LEVERAGES = [1, 2, 5] as const;
 
@@ -29,7 +30,7 @@ export default function DegenPage() {
   const [prices, setPrices] = useState<Record<string, LivePrice>>({});
   const [balance, setBalance] = useState<bigint>(0n);
   const [positions, setPositions] = useState<any[]>([]);
-  const [selected, setSelected] = useState(VAULTS[3]); // BONK by default 🔨
+  const [selected, setSelected] = useState(VAULTS[3]); // BONK by default
   const [stake, setStake] = useState(100);
   const [leverage, setLeverage] = useState<(typeof LEVERAGES)[number]>(5);
   const [busy, setBusy] = useState<string | null>(null);
@@ -70,8 +71,11 @@ export default function DegenPage() {
         leverage,
         priceUpdate,
       });
-      recordTx(`Opened ${leverage}x ${selected.symbol} (${stake} pts)`, signature);
-      setToast({ message: `APED ${stake} pts into ${leverage}x ${selected.symbol} 🦍`, signature });
+      recordTx(`Opened ${leverage}× ${selected.symbol} (${stake} pts)`, signature);
+      setToast({
+        message: `${stake} pts into a ${leverage}× ${selected.symbol} long`,
+        signature,
+      });
       await refresh();
     } catch (err) {
       setError(String(err));
@@ -80,33 +84,7 @@ export default function DegenPage() {
     }
   };
 
-  const paperHands = async (position: any) => {
-    setBusy(position.publicKey.toBase58());
-    setError(null);
-    try {
-      const wallet = getWallet();
-      const vaultAcc = VAULTS.find(
-        (v) => v.symbol === symbolForVault(position.account.vault)
-      );
-      if (!vaultAcc) throw new Error("unknown vault");
-      const priceUpdate = await postPrice(vaultAcc.symbol);
-      const signature = await closePosition(
-        wallet,
-        vaultAcc.symbol,
-        BigInt(position.account.positionId.toString()),
-        priceUpdate
-      );
-      recordTx(`Closed ${vaultAcc.symbol} position`, signature);
-      setToast({ message: "Position settled 🧻", signature });
-      await refresh();
-    } catch (err) {
-      setError(String(err));
-    } finally {
-      setBusy(null);
-    }
-  };
-
-  // vault PDA -> symbol lookup (computed once per render, tiny list)
+  // vault PDA -> symbol lookup (tiny list, computed per render)
   const vaultKeys = VAULTS.map((v) => ({
     symbol: v.symbol,
     key: vaultPda(v.symbol).toBase58(),
@@ -114,12 +92,36 @@ export default function DegenPage() {
   const symbolForVault = (vault: PublicKey) =>
     vaultKeys.find((v) => v.key === vault.toBase58())?.symbol ?? "?";
 
+  const settle = async (position: any) => {
+    setBusy(position.publicKey.toBase58());
+    setError(null);
+    try {
+      const wallet = getWallet();
+      const symbol = symbolForVault(position.account.vault);
+      const priceUpdate = await postPrice(symbol);
+      const signature = await closePosition(
+        wallet,
+        symbol,
+        BigInt(position.account.positionId.toString()),
+        priceUpdate
+      );
+      recordTx(`Closed ${symbol} position`, signature);
+      setToast({ message: "Position settled", signature });
+      await refresh();
+    } catch (err) {
+      setError(String(err));
+    } finally {
+      setBusy(null);
+    }
+  };
+
   const livePnl = (position: any): { pct: number; liq: number } | null => {
     const symbol = symbolForVault(position.account.vault);
     const meta = VAULTS.find((v) => v.symbol === symbol);
     const live = meta && priceFor(meta.feedId);
     if (!live) return null;
-    const entry = Number(position.account.entryPrice1E6 ?? position.account.entryPrice1e6) / 1e6;
+    const entry =
+      Number(position.account.entryPrice1E6 ?? position.account.entryPrice1e6) / 1e6;
     const lev = position.account.leverage;
     const delta = (live.price - entry) / entry;
     const multiplier = Math.max(0, Math.min(5, 1 + lev * delta));
@@ -131,9 +133,9 @@ export default function DegenPage() {
   return (
     <div className="space-y-4">
       <header className="flex items-baseline justify-between">
-        <h1 className="text-2xl font-bold">Degen Vaults</h1>
-        <span className="text-sm text-zinc-400">
-          bag: <b className="text-loyal">{balance.toLocaleString()}</b> pts
+        <h1 className="text-2xl font-semibold">Risk vaults</h1>
+        <span className="text-sm text-muted">
+          Balance <b className="text-accent">{balance.toLocaleString()}</b> pts
         </span>
       </header>
 
@@ -145,16 +147,17 @@ export default function DegenPage() {
             <button
               key={vault.symbol}
               onClick={() => setSelected(vault)}
-              className={`card text-left transition ${
-                active ? "border-loyal" : "hover:border-zinc-500"
+              className={`card text-left transition flex items-center gap-3 ${
+                active ? "border-accent/70 shadow-brass" : "hover:border-faint"
               }`}
             >
-              <p className="text-lg">
-                {vault.emoji} <b>{vault.symbol}</b>
-              </p>
-              <p className="text-sm text-zinc-400">
-                {live ? formatUsd(live.price) : "…"}
-              </p>
+              <AssetMark symbol={vault.symbol} />
+              <span className="min-w-0">
+                <span className="block font-semibold leading-tight">{vault.symbol}</span>
+                <span className="block text-sm text-muted tabular-nums">
+                  {live ? formatUsd(live.price) : "—"}
+                </span>
+              </span>
             </button>
           );
         })}
@@ -162,12 +165,12 @@ export default function DegenPage() {
 
       <div className="card space-y-4">
         <p className="font-semibold">
-          Long {selected.emoji} {selected.symbol} with your points
+          Long {selected.label} <span className="text-faint">({selected.symbol})</span>
         </p>
         <div>
-          <div className="flex justify-between text-sm text-zinc-400 mb-1">
-            <span>stake</span>
-            <span className="text-loyal font-bold">{stake} pts</span>
+          <div className="flex justify-between text-sm text-muted mb-2">
+            <span>Stake</span>
+            <span className="text-accent font-semibold tabular-nums">{stake} pts</span>
           </div>
           <input
             type="range"
@@ -176,7 +179,6 @@ export default function DegenPage() {
             step={10}
             value={stake}
             onChange={(e) => setStake(Number(e.target.value))}
-            className="w-full accent-lime-400"
           />
         </div>
         <div className="flex gap-2">
@@ -184,34 +186,36 @@ export default function DegenPage() {
             <button
               key={lev}
               onClick={() => setLeverage(lev)}
-              className={`flex-1 btn ${
+              className={`flex-1 btn !py-2.5 ${
                 leverage === lev
-                  ? "bg-loyal text-black"
-                  : "border border-edge text-zinc-300"
+                  ? "bg-accent text-bg"
+                  : "border border-edge text-muted hover:text-ink"
               }`}
             >
-              {lev}x{lev === 5 ? " 🌶️" : ""}
+              {lev}×
             </button>
           ))}
         </div>
-        <p className="text-xs text-zinc-500">
-          Win cap 5x · liquidation at −{Math.round(80 / leverage)}% · 2% settle
-          fee burned. Points only — you never hold the asset.
+        <p className="text-xs text-faint leading-relaxed">
+          Payout capped at 5× · liquidation at −{Math.round(80 / leverage)}% ·
+          2% settlement fee burned. Synthetic exposure only — you never hold the
+          asset.
         </p>
         <button
           onClick={apeIn}
           disabled={busy !== null || balance < BigInt(stake)}
-          className="btn-loyal w-full text-lg"
+          className="btn-primary w-full text-base"
         >
-          {busy === "open" ? "aping…" : "APE IN 🦍"}
+          <IconBolt size={18} />
+          {busy === "open" ? "Opening…" : `Open ${leverage}× long`}
         </button>
       </div>
 
       <section className="space-y-3">
-        <h2 className="font-semibold text-zinc-300">Open positions</h2>
+        <h2 className="font-semibold text-muted text-lg">Open positions</h2>
         {positions.length === 0 && (
-          <p className="text-sm text-zinc-500">
-            No open positions. Your points are safe… and boring.
+          <p className="text-sm text-faint">
+            No open positions. Your points are perfectly safe — and perfectly idle.
           </p>
         )}
         {positions.map((position) => {
@@ -219,36 +223,44 @@ export default function DegenPage() {
           const pnl = livePnl(position);
           const key = position.publicKey.toBase58();
           return (
-            <div key={key} className="card space-y-2">
-              <div className="flex justify-between">
-                <p className="font-bold">
-                  {position.account.leverage}x {symbol}
-                </p>
-                <p
-                  className={`font-bold ${
-                    (pnl?.pct ?? 0) >= 0 ? "text-pump" : "text-dump"
+            <div key={key} className="card space-y-2.5">
+              <div className="flex items-center justify-between">
+                <span className="flex items-center gap-2.5 font-semibold">
+                  <AssetMark symbol={symbol} size={28} />
+                  {position.account.leverage}× {symbol}
+                </span>
+                <span
+                  className={`font-semibold tabular-nums ${
+                    (pnl?.pct ?? 0) >= 0 ? "text-gain" : "text-loss"
                   }`}
                 >
-                  {pnl ? `${pnl.pct >= 0 ? "+" : ""}${pnl.pct.toFixed(1)}%` : "…"}
-                </p>
+                  {pnl ? `${pnl.pct >= 0 ? "+" : ""}${pnl.pct.toFixed(1)}%` : "—"}
+                </span>
               </div>
-              <p className="text-xs text-zinc-500">
-                stake {position.account.stake.toString()} pts · liq at{" "}
-                {pnl ? formatUsd(pnl.liq) : "…"} 💀
+              <p className="text-xs text-faint">
+                Stake {position.account.stake.toString()} pts · liquidates at{" "}
+                {pnl ? formatUsd(pnl.liq) : "—"}
               </p>
               <button
-                onClick={() => paperHands(position)}
+                onClick={() => settle(position)}
                 disabled={busy !== null}
-                className="btn-ghost w-full"
+                className="btn-ghost w-full !py-2.5"
               >
-                {busy === key ? "settling…" : "PAPER HANDS 🧻 (close)"}
+                {busy === key ? "Settling…" : "Close position"}
               </button>
             </div>
           );
         })}
       </section>
 
-      {error && <div className="card border-dump/40 text-sm text-dump break-all">{error}</div>}
+      {error && (
+        <div className="card border-loss/40 text-sm text-loss break-all flex gap-2">
+          <span className="shrink-0 pt-0.5">
+            <IconAlert size={16} />
+          </span>
+          {error}
+        </div>
+      )}
       {toast && (
         <TxToast
           message={toast.message}

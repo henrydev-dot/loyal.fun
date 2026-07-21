@@ -1,5 +1,20 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <rect width="64" height="64" rx="14" fill="#0b0b12"/>
-  <circle cx="32" cy="32" r="20" fill="none" stroke="#a3e635" stroke-width="5"/>
-  <path d="M26 22v20h14" fill="none" stroke="#a3e635" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <defs>
+    <linearGradient id="brass" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#E7BC63"/>
+      <stop offset="1" stop-color="#C8923A"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="15" fill="#0D0B09"/>
+  <rect x="1" y="1" width="62" height="62" rx="14" fill="none" stroke="#2A231E" stroke-width="2"/>
+  <!-- cup -->
+  <path d="M18 31h22v9a10 10 0 0 1-11 10 10 10 0 0 1-11-10v-9Z"
+        fill="none" stroke="url(#brass)" stroke-width="3.2" stroke-linejoin="round"/>
+  <path d="M40 34h2.8a4.6 4.6 0 0 1 0 9.2H40"
+        fill="none" stroke="url(#brass)" stroke-width="3.2" stroke-linecap="round"/>
+  <!-- steam as a rising price line -->
+  <path d="m21 23 6-7 5 4 8-9"
+        fill="none" stroke="url(#brass)" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M40 11h-5.2M40 11v5.2"
+        fill="none" stroke="url(#brass)" stroke-width="3.2" stroke-linecap="round"/>
 </svg>

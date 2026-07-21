@@ -216,7 +216,7 @@ impl Badge {
                 "https://loyal.fun/badges/5x-full-send.json",
             ),
             Badge::Liquidated => (
-                "Got Liquidated 💀",
+                "Liquidated",
                 "LOYALB2",
                 "https://loyal.fun/badges/liquidated.json",
             ),

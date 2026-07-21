@@ -1,11 +1,11 @@
 {
   "name": "loyal.fun",
   "short_name": "loyal.fun",
-  "description": "Earn points. Ape them into vaults. Spend the wins on coffee.",
+  "description": "Closed-loop loyalty points on Solana: earn at the till, take market exposure, spend on real rewards.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0b0b12",
-  "theme_color": "#0b0b12",
+  "background_color": "#0D0B09",
+  "theme_color": "#0D0B09",
   "icons": [
     {
       "src": "/icon.svg",

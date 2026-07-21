@@ -6,6 +6,7 @@ import { scanAndEarn } from "@/lib/actions";
 import { QrPayload } from "@/lib/relayer";
 import { recordTx } from "@/lib/history";
 import TxToast from "@/components/TxToast";
+import { IconAlert, IconCheck, IconScan, IconSpinner } from "@/components/icons";
 
 type ScanState =
   | { kind: "idle" }
@@ -26,7 +27,7 @@ export default function ScanPage() {
       payload = JSON.parse(raw);
       if (!payload.merchant || !payload.signature) throw new Error();
     } catch {
-      setState({ kind: "error", message: "That QR is not a loyal.fun sale code." });
+      setState({ kind: "error", message: "That code is not a loyal.fun sale QR." });
       return;
     }
     setState({ kind: "submitting" });
@@ -63,44 +64,49 @@ export default function ScanPage() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-bold">Scan &amp; Earn</h1>
-      <p className="text-sm text-zinc-400">
-        Point your camera at the QR on the till. It&apos;s signed by the shop and
-        dies in 60 seconds — screenshots won&apos;t fly.
+      <h1 className="text-2xl font-semibold">Scan &amp; earn</h1>
+      <p className="text-sm text-muted leading-relaxed">
+        Point the camera at the code on the till. Each QR is signed by the shop
+        and expires in 60 seconds — screenshots don&apos;t work.
       </p>
 
-      <div id={regionId} className="rounded-2xl overflow-hidden border border-edge min-h-[100px]" />
+      <div id={regionId} className="rounded-xl overflow-hidden border border-edge min-h-[100px]" />
 
       {state.kind === "idle" && (
-        <button onClick={startCamera} className="btn-loyal w-full">
-          📷 Open camera
+        <button onClick={startCamera} className="btn-primary w-full">
+          <IconScan size={18} /> Open camera
         </button>
       )}
       {state.kind === "scanning" && (
-        <p className="text-center text-sm text-zinc-400">scanning…</p>
+        <p className="text-center text-sm text-muted">Scanning…</p>
       )}
       {state.kind === "submitting" && (
-        <p className="text-center text-sm text-loyal animate-pulse">
-          minting your points on Solana…
+        <p className="inline-flex w-full items-center justify-center gap-2 text-sm text-accent">
+          <IconSpinner size={16} /> Minting your points on Solana…
         </p>
       )}
       {state.kind === "done" && (
-        <div className="card text-center py-8 space-y-2 border-loyal/50">
-          <p className="text-5xl animate-floatUp">🎉</p>
-          <p className="text-3xl font-bold text-loyal animate-pop">
+        <div className="card text-center py-9 space-y-3 border-accent/50 animate-pop">
+          <span className="inline-flex text-gain">
+            <IconCheck size={44} strokeWidth={1.2} />
+          </span>
+          <p className="font-display text-4xl font-semibold text-accent">
             +{state.points} LOYAL
           </p>
-          <p className="text-sm text-zinc-400">stacked. go long or grab a coffee.</p>
+          <p className="text-sm text-muted">Banked. Take a position or treat yourself.</p>
         </div>
       )}
       {state.kind === "error" && (
-        <div className="card border-dump/40 text-sm text-dump break-all">
+        <div className="card border-loss/40 text-sm text-loss break-all flex gap-2">
+          <span className="shrink-0 pt-0.5">
+            <IconAlert size={16} />
+          </span>
           {state.message}
         </div>
       )}
 
-      <details className="card text-sm text-zinc-400">
-        <summary className="cursor-pointer">No camera? Paste the QR payload</summary>
+      <details className="card text-sm text-muted">
+        <summary className="cursor-pointer select-none">No camera? Paste the QR payload</summary>
         <textarea
           className="input mt-3 h-28 font-mono text-xs"
           value={manual}
@@ -112,7 +118,7 @@ export default function ScanPage() {
         </button>
       </details>
 
-      {(state.kind === "done" || state.kind === "error") && state.kind === "done" && (
+      {state.kind === "done" && (
         <TxToast
           message={`+${state.points} LOYAL earned`}
           signature={state.signature}

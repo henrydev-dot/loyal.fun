@@ -7,30 +7,66 @@
 }
 
 body {
-  @apply bg-bg text-zinc-100 antialiased;
-  font-family: "Space Grotesk", system-ui, -apple-system, sans-serif;
+  @apply bg-bg text-ink antialiased font-body;
+  /* Layered warm vignette + faint grain — depth without images. */
+  background-image:
+    radial-gradient(1200px 500px at 50% -10%, rgba(217, 164, 65, 0.07), transparent 60%),
+    radial-gradient(800px 400px at 100% 110%, rgba(217, 164, 65, 0.04), transparent 55%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.02 0'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-attachment: fixed;
+}
+
+h1,
+h2,
+h3 {
+  @apply font-display;
+  font-variation-settings: "SOFT" 60, "WONK" 0;
+  letter-spacing: -0.01em;
 }
 
 .card {
-  @apply bg-card border border-edge rounded-2xl p-4;
+  @apply bg-card border border-edge rounded-xl p-4;
+  background-image: linear-gradient(180deg, rgba(239, 233, 223, 0.02), transparent 40%);
 }
 
 .btn {
-  @apply rounded-xl px-4 py-3 font-semibold text-center transition active:scale-95 disabled:opacity-40 disabled:pointer-events-none;
+  @apply rounded-lg px-4 py-3 font-semibold text-center transition active:scale-[0.98] disabled:opacity-40 disabled:pointer-events-none inline-flex items-center justify-center gap-2;
 }
 
-.btn-loyal {
-  @apply btn bg-loyal text-black hover:brightness-110;
+.btn-primary {
+  @apply btn bg-accent text-bg hover:bg-accentBright;
 }
 
 .btn-ghost {
-  @apply btn border border-edge text-zinc-300 hover:bg-edge/50;
+  @apply btn border border-edge text-ink/80 hover:border-faint hover:text-ink;
 }
 
 .input {
-  @apply w-full rounded-xl bg-bg border border-edge px-4 py-3 text-zinc-100 outline-none focus:border-loyal;
+  @apply w-full rounded-lg bg-bg border border-edge px-4 py-3 text-ink outline-none placeholder:text-faint focus:border-accent/60;
 }
 
 .stat-label {
-  @apply text-xs uppercase tracking-widest text-zinc-500;
+  @apply text-[11px] uppercase tracking-[0.18em] text-faint;
+}
+
+.hairline {
+  @apply border-t border-edge;
+}
+
+/* Range inputs, tuned to the brass accent. */
+input[type="range"] {
+  @apply w-full appearance-none bg-transparent;
+}
+input[type="range"]::-webkit-slider-runnable-track {
+  @apply h-1 rounded-full bg-edge;
+}
+input[type="range"]::-webkit-slider-thumb {
+  @apply appearance-none w-4 h-4 rounded-full bg-accent border-2 border-bg shadow-brass;
+  margin-top: -6px;
+}
+input[type="range"]::-moz-range-track {
+  @apply h-1 rounded-full bg-edge;
+}
+input[type="range"]::-moz-range-thumb {
+  @apply w-4 h-4 rounded-full bg-accent border-2 border-bg;
 }

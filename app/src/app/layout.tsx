@@ -3,15 +3,15 @@ import "./globals.css";
 import TabBar from "@/components/TabBar";
 
 export const metadata: Metadata = {
-  title: "loyal.fun — degen loyalty",
+  title: "loyal.fun — loyalty, alive",
   description:
-    "Buy a coffee, earn points, long BONK with them, spend the wins on free coffee.",
+    "Closed-loop loyalty points on Solana: earn at the till, take synthetic market exposure, spend on real rewards.",
   manifest: "/manifest.json",
-  icons: [{ rel: "icon", url: "/icon.svg" }],
+  icons: [{ rel: "icon", url: "/icon.svg", type: "image/svg+xml" }],
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0b0b12",
+  themeColor: "#0D0B09",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -22,8 +22,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
-          href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Instrument+Sans:wght@400;500;600;700&display=swap"
           rel="stylesheet"
         />
       </head>
