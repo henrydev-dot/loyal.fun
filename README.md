@@ -227,6 +227,12 @@ Po imporcie: `solana address` musi pokazać adres z Phantoma; na końcu `history
 
 ### 7.4. Przeklikanie aplikacji (dwa urządzenia lub dwa okna przeglądarki)
 
+> **Szybki start:** wejdź na **`/demo-merchant`** — kioskowy skrót do testów.
+> Jedno dotknięcie rejestruje na łańcuchu jednorazowy sklep „Demo Till",
+> a przyciski 50 / 100 / 200 / 500 natychmiast generują podpisany,
+> 60-sekundowy QR sprzedaży. Zeskanuj go aplikacją klienta (zakładka Scan)
+> na drugim urządzeniu — bez wypełniania panelu sprzedawcy.
+
 **Okno A — sklep (`/merchant`):**
 1. Zarejestruj sklep (jedno kliknięcie; opłaty idą przez relayer).
 2. Zakładka **Rewards** — dodaj listing, np. „1 Free Coffee" za 500 pkt.

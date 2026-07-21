@@ -227,6 +227,12 @@ After importing: `solana address` must print your Phantom address; finish with `
 
 ### 7.4. Clicking through the app (two devices, or two browser windows)
 
+> **Quick start:** open **`/demo-merchant`** — a kiosk-style testing shortcut.
+> One tap registers a throwaway "Demo Till" merchant on-chain, and the
+> 50 / 100 / 200 / 500 buttons instantly render a signed, 60-second sale QR.
+> Scan it with the customer app (Scan tab) on another device — no merchant
+> panel setup needed.
+
 **Window A — the shop (`/merchant`):**
 1. Register the shop (one click; fees go through the relayer).
 2. **Rewards** tab — create a listing, e.g. "1 Free Coffee" for 500 pts.

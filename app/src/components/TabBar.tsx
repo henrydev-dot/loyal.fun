@@ -14,7 +14,9 @@ const TABS = [
 
 export default function TabBar() {
   const pathname = usePathname();
-  if (pathname?.startsWith("/merchant")) return null;
+  if (pathname?.startsWith("/merchant") || pathname?.startsWith("/demo-merchant")) {
+    return null;
+  }
 
   return (
     <nav className="fixed bottom-0 inset-x-0 z-50">
