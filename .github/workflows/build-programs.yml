@@ -1,0 +1,66 @@
+# Builds the SBF binaries for both programs and commits them to prebuilt/.
+# Used because some dev environments cannot fetch the Solana platform-tools
+# toolchain directly; deploys then run `solana program deploy prebuilt/*.so`.
+name: build-programs
+
+on:
+  workflow_dispatch: {}
+  push:
+    branches:
+      - claude/loyal-fun-solana-hackathon-fb8fkf
+      - main
+    paths:
+      - "programs/**"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - ".github/workflows/build-programs.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: build-programs-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Solana toolchain
+        run: |
+          curl -sS -o /tmp/solana.tar.bz2 \
+            https://release.anza.xyz/v2.1.21/solana-release-x86_64-unknown-linux-gnu.tar.bz2
+          tar xjf /tmp/solana.tar.bz2 -C /tmp
+          echo "/tmp/solana-release/bin" >> "$GITHUB_PATH"
+
+      - name: Cache platform-tools and cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/solana
+            ~/.cargo/registry
+          key: sbf-${{ runner.os }}-v1.43-${{ hashFiles('Cargo.lock') }}
+          restore-keys: sbf-${{ runner.os }}-v1.43-
+
+      - name: Build programs (SBF)
+        run: |
+          cargo-build-sbf --manifest-path programs/loyal_core/Cargo.toml
+          cargo-build-sbf --manifest-path programs/loyal_hook/Cargo.toml
+          ls -la target/deploy/
+
+      - name: Commit prebuilt binaries
+        run: |
+          mkdir -p prebuilt
+          cp target/deploy/loyal_core.so target/deploy/loyal_hook.so prebuilt/
+          sha256sum prebuilt/*.so > prebuilt/SHA256SUMS
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add prebuilt/
+          if git diff --cached --quiet; then
+            echo "binaries unchanged"
+          else
+            git commit -m "ci: update prebuilt program binaries [skip ci]"
+            git push
+          fi
