@@ -12,20 +12,29 @@
 
 <table align="center">
   <tr>
-    <td align="center" width="200">
-      <img src="docs/demo-qr.png" width="170" alt="Demo QR" /><br/>
-      <sub><b>Scan with your phone</b><br/>and test right away</sub>
+    <td align="center" width="190">
+      <a href="https://loyalfun.vercel.app"><img src="docs/demo-qr.png" width="150" alt="QR — customer app" /></a><br/>
+      <sub><b>Customer app</b><br/>earn points, open positions<br/><code>loyalfun.vercel.app</code></sub>
     </td>
-    <td>
-      <b>Quick start (Solana Devnet — no wallet, no SOL needed):</b><br/><br/>
-      1. Open <a href="https://loyalfun.vercel.app/demo-merchant"><code>/demo-merchant</code></a> on a laptop — one tap registers the demo till<br/>
-      2. Pick an amount → a signed, 60-second sale QR appears<br/>
-      3. On your phone open <a href="https://loyalfun.vercel.app">loyalfun.vercel.app</a> → <b>Scan</b> (or scan the QR with the native camera — it's a deep link)<br/>
-      4. Points land in the embedded wallet → <b>Degen</b> tab: 5× BONK position → <b>Market</b>: cNFT coupon → <b>Profile</b>: soulbound badge<br/><br/>
-      <a href="https://loyalfun.vercel.app">App</a> · <a href="https://loyalfun.vercel.app/merchant">Merchant panel</a> · <a href="https://loyalfun.vercel.app/demo-merchant">Test kiosk</a> · <a href="https://loyalfun.vercel.app/api/health">API status</a>
+    <td align="center" width="190">
+      <a href="https://loyalfun.vercel.app/demo-merchant"><img src="docs/demo-merchant-qr.png" width="150" alt="QR — demo till" /></a><br/>
+      <sub><b>Demo till — generate sale QRs</b><br/>one tap, a fresh code every 60 s<br/><code>/demo-merchant</code></sub>
+    </td>
+    <td align="center" width="190">
+      <a href="https://loyalfun.vercel.app/merchant"><img src="docs/merchant-qr.png" width="150" alt="QR — merchant panel" /></a><br/>
+      <sub><b>Merchant panel</b><br/>register, rewards, coupon redemption<br/><code>/merchant</code></sub>
     </td>
   </tr>
 </table>
+
+<p align="center"><b>Quick start (Solana Devnet — no wallet, no SOL needed):</b></p>
+
+1. Open [`/demo-merchant`](https://loyalfun.vercel.app/demo-merchant) on a laptop — one tap registers the demo till; the 50/100/200/500 buttons render a signed, 60-second sale QR
+2. On your phone open [loyalfun.vercel.app](https://loyalfun.vercel.app) → **Scan** and scan the code — or use the native camera: the QR is a deep link and opens the app by itself
+3. Points land in the embedded wallet → **Degen**: a 5× BONK position → **Market**: a cNFT coupon → **Profile**: a soulbound badge
+4. Running a shop? [`/merchant`](https://loyalfun.vercel.app/merchant): registration, your own sale QRs, reward listings and the coupon-redemption scanner
+
+<p align="center"><a href="https://loyalfun.vercel.app">App</a> · <a href="https://loyalfun.vercel.app/merchant">Merchant panel</a> · <a href="https://loyalfun.vercel.app/demo-merchant">Demo till</a> · <a href="https://loyalfun.vercel.app/api/health">API status</a></p>
 
 ---
 
