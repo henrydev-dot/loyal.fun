@@ -24,7 +24,16 @@ export default function ScanPage() {
   const handlePayload = async (raw: string) => {
     let payload: QrPayload;
     try {
-      payload = JSON.parse(raw);
+      let text = raw.trim();
+      // Sale QRs carry a deep link (…/scan?d=<base64url>) so native phone
+      // cameras work too; unwrap it back to the JSON payload.
+      if (text.startsWith("http")) {
+        const encoded = new URL(text).searchParams.get("d");
+        if (!encoded) throw new Error();
+        const { decodeSaleParam } = await import("@/lib/saleQr");
+        text = decodeSaleParam(encoded);
+      }
+      payload = JSON.parse(text);
       if (!payload.merchant || !payload.signature) throw new Error();
     } catch {
       setState({ kind: "error", message: "That code is not a loyal.fun sale QR." });
@@ -47,7 +56,13 @@ export default function ScanPage() {
     scannerRef.current = scanner;
     await scanner.start(
       { facingMode: "environment" },
-      { fps: 10, qrbox: 240 },
+      {
+        fps: 12,
+        qrbox: { width: 280, height: 280 },
+        // Native BarcodeDetector when available — much more reliable on phones.
+        // @ts-expect-error html5-qrcode types omit this documented option
+        experimentalFeatures: { useBarCodeDetectorIfSupported: true },
+      },
       (text: string) => {
         scanner.stop().catch(() => undefined);
         void handlePayload(text);
@@ -57,9 +72,18 @@ export default function ScanPage() {
   };
 
   useEffect(() => {
+    // Deep-linked sale QR: a native camera app lands here with ?d=<payload>.
+    const encoded = new URLSearchParams(window.location.search).get("d");
+    if (encoded) {
+      window.history.replaceState(null, "", "/scan");
+      import("@/lib/saleQr").then(({ decodeSaleParam }) =>
+        handlePayload(decodeSaleParam(encoded))
+      );
+    }
     return () => {
       scannerRef.current?.stop().catch(() => undefined);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (

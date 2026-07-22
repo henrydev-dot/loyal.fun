@@ -41,3 +41,26 @@ export function makeSaleQrPayload(points: number): string {
     expiresInSecs: QR_TTL_SECS,
   });
 }
+
+/**
+ * The QR encodes a deep link rather than raw JSON: a phone's NATIVE camera
+ * then opens the app straight on the Scan page, which auto-processes the
+ * payload from the `d` query param. The in-app scanner accepts both forms.
+ */
+export function makeSaleQrUrl(points: number): string {
+  const payload = makeSaleQrPayload(points);
+  const encoded = Buffer.from(payload, "utf8")
+    .toString("base64")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
+  const origin =
+    typeof window !== "undefined" ? window.location.origin : "https://loyalfun.vercel.app";
+  return `${origin}/scan?d=${encoded}`;
+}
+
+/** Reverse of makeSaleQrUrl's encoding; returns the JSON payload string. */
+export function decodeSaleParam(encoded: string): string {
+  const base64 = encoded.replace(/-/g, "+").replace(/_/g, "/");
+  return Buffer.from(base64, "base64").toString("utf8");
+}

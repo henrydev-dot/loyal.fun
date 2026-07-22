@@ -15,8 +15,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import * as anchor from "@coral-xyz/anchor";
 import { PublicKey, SystemProgram, Transaction } from "@solana/web3.js";
 import QRCode from "qrcode";
-import nacl from "tweetnacl";
 import { getMerchantWallet, getMerchantQrSigner } from "@/lib/wallet";
+import { makeSaleQrUrl } from "@/lib/saleQr";
 import { getProgram } from "@/lib/program";
 import { ensureFunded, sendSponsored } from "@/lib/relayer";
 import { configPda } from "@/lib/pdas";
@@ -134,32 +134,14 @@ export default function MerchantPage() {
     }
   };
 
-  /** €1 = 10 points, signed locally by the tablet's QR key. */
+  /** €1 = 10 points, signed locally by the tablet's QR key. The QR carries a
+   * deep link so even a phone's native camera lands on the Scan page. */
   const newSale = async () => {
     setError(null);
-    const wallet = getMerchantWallet();
-    const merchant = merchantPda(wallet.publicKey);
-    const points = amount * 10;
-    const nonce = BigInt(Date.now()) * 1000n + BigInt(Math.floor(Math.random() * 1000));
-    const expiry = BigInt(Math.floor(Date.now() / 1000) + 60);
-
-    const msg = Buffer.alloc(56);
-    merchant.toBuffer().copy(msg, 0);
-    msg.writeBigUInt64LE(BigInt(points), 32);
-    msg.writeBigUInt64LE(nonce, 40);
-    msg.writeBigInt64LE(expiry, 48);
-    const signature = nacl.sign.detached(msg, getMerchantQrSigner().secretKey);
-
-    const payload = JSON.stringify({
-      merchant: merchant.toBase58(),
-      qrSigner: getMerchantQrSigner().publicKey.toBase58(),
-      points,
-      nonce: nonce.toString(),
-      expiry: expiry.toString(),
-      signature: Buffer.from(signature).toString("base64"),
-      expiresInSecs: 60,
-    });
-    setSaleQr(await QRCode.toDataURL(payload, { margin: 1, width: 480 }));
+    const url = makeSaleQrUrl(amount * 10);
+    setSaleQr(
+      await QRCode.toDataURL(url, { margin: 2, width: 560, errorCorrectionLevel: "L" })
+    );
     setCountdown(60);
   };
 
@@ -205,7 +187,12 @@ export default function MerchantPage() {
     scannerRef.current = scanner;
     await scanner.start(
       { facingMode: "environment" },
-      { fps: 10, qrbox: 240 },
+      {
+        fps: 12,
+        qrbox: { width: 280, height: 280 },
+        // @ts-expect-error html5-qrcode types omit this documented option
+        experimentalFeatures: { useBarCodeDetectorIfSupported: true },
+      },
       async (text: string) => {
         await scanner.stop().catch(() => undefined);
         try {

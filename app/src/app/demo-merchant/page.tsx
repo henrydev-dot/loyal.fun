@@ -17,7 +17,7 @@ import { getMerchantWallet, getMerchantQrSigner } from "@/lib/wallet";
 import { getProgram } from "@/lib/program";
 import { sendSponsored } from "@/lib/relayer";
 import { configPda } from "@/lib/pdas";
-import { demoMerchantPda, makeSaleQrPayload, QR_TTL_SECS } from "@/lib/saleQr";
+import { demoMerchantPda, makeSaleQrUrl, QR_TTL_SECS } from "@/lib/saleQr";
 import { IconAlert, IconReceipt, IconSpinner, LogoMark } from "@/components/icons";
 
 const PRESETS = [50, 100, 200, 500];
@@ -84,8 +84,14 @@ export default function DemoMerchantPage() {
     setPoints(pts);
     setError(null);
     try {
-      const payload = makeSaleQrPayload(pts);
-      setQr(await QRCode.toDataURL(payload, { margin: 1, width: 480 }));
+      const url = makeSaleQrUrl(pts);
+      setQr(
+        await QRCode.toDataURL(url, {
+          margin: 2,
+          width: 560,
+          errorCorrectionLevel: "L",
+        })
+      );
       setCountdown(QR_TTL_SECS);
     } catch (err) {
       setError(String(err));
