@@ -15,12 +15,34 @@ import bs58 from "bs58";
 
 const STORAGE_KEY = "loyal.fun/burner-wallet/v1";
 
+// Safari private windows (and some embedded webviews) can throw on
+// localStorage access. Fall back to an in-memory store: the wallet then
+// lives for the session only, but the app never crashes.
+const memoryStore = new Map<string, string>();
+
+function storageGet(key: string): string | null {
+  try {
+    return window.localStorage.getItem(key) ?? memoryStore.get(key) ?? null;
+  } catch {
+    return memoryStore.get(key) ?? null;
+  }
+}
+
+function storageSet(key: string, value: string): void {
+  memoryStore.set(key, value);
+  try {
+    window.localStorage.setItem(key, value);
+  } catch {
+    /* private mode — memory fallback already holds it */
+  }
+}
+
 export function getWallet(): Keypair {
   if (typeof window === "undefined") {
     // SSR render pass — never used for signing.
     return Keypair.generate();
   }
-  const stored = window.localStorage.getItem(STORAGE_KEY);
+  const stored = storageGet(STORAGE_KEY);
   if (stored) {
     try {
       return Keypair.fromSecretKey(bs58.decode(stored));
@@ -29,7 +51,7 @@ export function getWallet(): Keypair {
     }
   }
   const fresh = Keypair.generate();
-  window.localStorage.setItem(STORAGE_KEY, bs58.encode(fresh.secretKey));
+  storageSet(STORAGE_KEY, bs58.encode(fresh.secretKey));
   return fresh;
 }
 
@@ -46,7 +68,7 @@ const QR_SIGNER_KEY = "loyal.fun/merchant-qr-signer/v1";
 
 function loadOrCreate(storageKey: string): Keypair {
   if (typeof window === "undefined") return Keypair.generate();
-  const stored = window.localStorage.getItem(storageKey);
+  const stored = storageGet(storageKey);
   if (stored) {
     try {
       return Keypair.fromSecretKey(bs58.decode(stored));
@@ -55,7 +77,7 @@ function loadOrCreate(storageKey: string): Keypair {
     }
   }
   const fresh = Keypair.generate();
-  window.localStorage.setItem(storageKey, bs58.encode(fresh.secretKey));
+  storageSet(storageKey, bs58.encode(fresh.secretKey));
   return fresh;
 }
 
