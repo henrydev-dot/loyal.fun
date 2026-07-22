@@ -14,7 +14,9 @@
 
 loyal.fun turns small-shop loyalty points into a living on-chain asset on Solana. Points are a **closed-loop Token-2022 mint** ($LOYAL) earned via merchant-signed QR codes, **stakeable** into synthetic Pyth-priced positions (1×/2×/5× leverage), **spendable** on real-world rewards minted as **compressed NFTs (cNFTs)**, and **collectible** as **soulbound badges** — including one for getting liquidated.
 
-**Live demo:** [loyalfun.vercel.app](https://loyalfun.vercel.app) · **Network:** Solana Devnet
+**Live demo:** [loyalfun.vercel.app](https://loyalfun.vercel.app) · customers: `/` · shop: [`/merchant`](https://loyalfun.vercel.app/merchant) · test kiosk: [`/demo-merchant`](https://loyalfun.vercel.app/demo-merchant) · **Network:** Solana Devnet
+
+<!-- DEMO-VIDEO -->
 
 ## Screenshots
 
@@ -166,12 +168,28 @@ npx ts-node scripts/create_vaults.ts   # SOL / BTC / WIF / BONK vaults
 npx ts-node scripts/seed_demo.ts       # full happy path, prints Explorer links
 npm run sync-idl                       # copies the IDL into the app
 
-# Services
-cp relayer/.env.example relayer/.env   # add FEE_PAYER_SECRET + values printed by deploy.ts
-npm run relayer                        # :8787
+# Services (local)
 cp app/.env.local.example app/.env.local
 npm run app                            # :3000 (customer) + /merchant (shop tablet)
+# optional standalone relayer for development:
+cp relayer/.env.example relayer/.env && npm run relayer   # :8787
 ```
+
+### Hosting (Vercel) — one deployment, no extra services
+
+The Vercel project points at the `app/` directory. **The relayer is built
+in** as serverless routes: `/api/sponsor` (fee-payer co-signing with a
+program whitelist), `/api/price/:symbol` (posts fresh Pyth prices),
+`/api/fund` (tops up burner wallets with a sliver of SOL for account rent —
+the relayer pays fees, but `init` rent is debited from the user) and
+`/api/health`. The only required environment variable:
+
+| Variable | Value |
+|---|---|
+| `FEE_PAYER_SECRET` | a devnet keypair holding a little SOL (JSON array or base58) |
+
+Sale QRs are **deep links** (`/scan?d=…`) — a phone's native camera reads
+them too and opens the app straight on the Scan page.
 
 ## 7. How to test the system (step by step)
 

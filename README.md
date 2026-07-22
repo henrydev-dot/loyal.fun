@@ -14,7 +14,9 @@
 
 loyal.fun zamienia punkty lojalnościowe małych sklepów w żywe aktywo na Solanie. Punkty to **zamknięty obieg Token-2022** ($LOYAL) zdobywany przez podpisane kody QR sprzedawcy, **stakowalny** w syntetyczne pozycje wyceniane oraklem Pyth (dźwignia 1×/2×/5×), **wydawalny** na prawdziwe nagrody bite jako **skompresowane NFT (cNFT)** i **kolekcjonowalny** jako odznaki **soulbound** — łącznie z odznaką za likwidację pozycji.
 
-**Live demo:** [loyalfun.vercel.app](https://loyalfun.vercel.app) · **Sieć:** Solana Devnet
+**Live demo:** [loyalfun.vercel.app](https://loyalfun.vercel.app) · klienci: `/` · sklep: [`/merchant`](https://loyalfun.vercel.app/merchant) · kiosk testowy: [`/demo-merchant`](https://loyalfun.vercel.app/demo-merchant) · **Sieć:** Solana Devnet
+
+<!-- DEMO-VIDEO -->
 
 ## Zrzuty ekranu
 
@@ -166,12 +168,28 @@ npx ts-node scripts/create_vaults.ts   # vaulty SOL / BTC / WIF / BONK
 npx ts-node scripts/seed_demo.ts       # pełny happy path, drukuje linki do Explorera
 npm run sync-idl                       # kopiuje IDL do aplikacji
 
-# Usługi
-cp relayer/.env.example relayer/.env   # uzupełnij FEE_PAYER_SECRET + wartości z deploy.ts
-npm run relayer                        # :8787
+# Usługi (lokalnie)
 cp app/.env.local.example app/.env.local
 npm run app                            # :3000 (klient) + /merchant (tablet sklepu)
+# opcjonalnie osobny relayer do dewelopmentu:
+cp relayer/.env.example relayer/.env && npm run relayer   # :8787
 ```
+
+### Hosting (Vercel) — jedno wdrożenie, zero dodatkowych usług
+
+Projekt Vercela wskazuje katalog `app/`. **Relayer jest wbudowany** jako
+route'y serverless: `/api/sponsor` (współpodpis fee-payera z whitelistą
+programów), `/api/price/:symbol` (publikacja świeżych cen Pyth),
+`/api/fund` (automatyczne zasilenie portfela burner drobnym SOL na czynsz
+kont — relayer płaci opłaty, ale rent kont `init` schodzi z użytkownika)
+oraz `/api/health`. Jedyna wymagana zmienna środowiskowa:
+
+| Zmienna | Wartość |
+|---|---|
+| `FEE_PAYER_SECRET` | keypair devnet z odrobiną SOL (tablica JSON lub base58) |
+
+QR sprzedaży to **głęboki link** (`/scan?d=…`) — kod czyta także zwykły
+aparat telefonu i otwiera aplikację prosto na ekranie skanowania.
 
 ## 7. Jak przetestować system (krok po kroku)
 
