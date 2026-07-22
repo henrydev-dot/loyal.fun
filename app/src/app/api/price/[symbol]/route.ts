@@ -33,13 +33,17 @@ export async function POST(
       connection,
       wallet: {
         publicKey: feePayer.publicKey,
+        // NOTE: detect versioned txs structurally ("version" property) —
+        // constructor names are mangled by minification in production builds.
         signTransaction: async (tx: any) => {
-          tx.sign(tx.constructor.name === "VersionedTransaction" ? [feePayer] : feePayer);
+          if ("version" in tx) tx.sign([feePayer]);
+          else tx.partialSign(feePayer);
           return tx;
         },
         signAllTransactions: async (txs: any[]) => {
           for (const tx of txs) {
-            tx.sign(tx.constructor.name === "VersionedTransaction" ? [feePayer] : feePayer);
+            if ("version" in tx) tx.sign([feePayer]);
+            else tx.partialSign(feePayer);
           }
           return txs;
         },

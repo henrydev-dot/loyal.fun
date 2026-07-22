@@ -271,13 +271,17 @@ app.post("/price/:symbol", priceLimiter, async (req: Request, res: Response) => 
       connection,
       wallet: {
         publicKey: feePayer.publicKey,
+        // Structural check ("version" property): survives minification,
+        // unlike constructor-name sniffing.
         signTransaction: async (tx: any) => {
-          tx.sign(tx.constructor.name === "VersionedTransaction" ? [feePayer] : feePayer);
+          if ("version" in tx) tx.sign([feePayer]);
+          else tx.partialSign(feePayer);
           return tx;
         },
         signAllTransactions: async (txs: any[]) => {
           for (const tx of txs) {
-            tx.sign(tx.constructor.name === "VersionedTransaction" ? [feePayer] : feePayer);
+            if ("version" in tx) tx.sign([feePayer]);
+            else tx.partialSign(feePayer);
           }
           return txs;
         },
