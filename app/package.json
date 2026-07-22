@@ -8,7 +8,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "postinstall": "node scripts/patch-pyth-exports.cjs"
   },
   "dependencies": {
     "@coral-xyz/anchor": "^0.31.1",
@@ -19,7 +20,8 @@
     "qrcode": "^1.5.4",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "tweetnacl": "^1.0.3"
+    "tweetnacl": "^1.0.3",
+    "@pythnetwork/pyth-solana-receiver": "^0.16.0"
   },
   "devDependencies": {
     "@types/node": "^22.5.0",

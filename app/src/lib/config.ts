@@ -1,9 +1,15 @@
 import { PublicKey } from "@solana/web3.js";
 
+// Default RPC is a DAS-capable Helius devnet endpoint so coupons work out of
+// the box. NEXT_PUBLIC_* values are public by design — this is a free
+// devnet-only key; swap in your own via env if it gets rate-limited.
 export const RPC_URL =
-  process.env.NEXT_PUBLIC_RPC_URL ?? "https://api.devnet.solana.com";
-export const RELAYER_URL =
-  process.env.NEXT_PUBLIC_RELAYER_URL ?? "http://localhost:8787";
+  process.env.NEXT_PUBLIC_RPC_URL ??
+  "https://devnet.helius-rpc.com/?api-key=b7b947ab-fb56-4f3d-9604-cfdb67967b95";
+// Default relayer is the app's own /api routes (Vercel serverless).
+// Point NEXT_PUBLIC_RELAYER_URL at http://localhost:8787 to use the
+// standalone relayer/ service in local development instead.
+export const RELAYER_URL = process.env.NEXT_PUBLIC_RELAYER_URL ?? "/api";
 export const CORE_PROGRAM_ID = new PublicKey(
   process.env.NEXT_PUBLIC_CORE_PROGRAM_ID ??
     "CF5FkJ9GKoFk3SMkBZuXgGnXwfN6TETs5eAYS7V6gggr"

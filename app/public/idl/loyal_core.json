@@ -1,0 +1,3206 @@
+{
+  "address": "CF5FkJ9GKoFk3SMkBZuXgGnXwfN6TETs5eAYS7V6gggr",
+  "metadata": {
+    "name": "loyal_core",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "loyal.fun core program: closed-loop $LOYAL points, risk vaults, cNFT coupons, soulbound badges"
+  },
+  "instructions": [
+    {
+      "name": "buy_reward",
+      "docs": [
+        "Buys a reward: burns the price and mints a coupon cNFT (Bubblegum CPI)",
+        "to the buyer."
+      ],
+      "discriminator": [
+        86,
+        101,
+        202,
+        202,
+        77,
+        144,
+        137,
+        97
+      ],
+      "accounts": [
+        {
+          "name": "user",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "listing",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  108,
+                  105,
+                  115,
+                  116,
+                  105,
+                  110,
+                  103
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "listing.merchant",
+                "account": "RewardListing"
+              },
+              {
+                "kind": "account",
+                "path": "listing.listing_id",
+                "account": "RewardListing"
+              }
+            ]
+          }
+        },
+        {
+          "name": "user_profile",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  115,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "user"
+              }
+            ]
+          }
+        },
+        {
+          "name": "loyal_mint",
+          "writable": true
+        },
+        {
+          "name": "user_ata",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "user"
+              },
+              {
+                "kind": "account",
+                "path": "token_program"
+              },
+              {
+                "kind": "account",
+                "path": "loyal_mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "tree_config",
+          "docs": [
+            "validates it against the merkle tree in the CPI."
+          ],
+          "writable": true
+        },
+        {
+          "name": "merkle_tree",
+          "writable": true
+        },
+        {
+          "name": "log_wrapper",
+          "address": "noopb9bkMVfRPU8AsbpTUg8AQkHtKwMYZiFUjNRtMmV"
+        },
+        {
+          "name": "compression_program",
+          "address": "cmtDvXumGCrqC1Age74AVPhSRVXJMd8PJS91L8KbNCK"
+        },
+        {
+          "name": "bubblegum_program",
+          "address": "BGUMAp9Gq7iTEuizy4pqaxsTyUCBK68MDfK752saRPUY"
+        },
+        {
+          "name": "token_program",
+          "address": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "claim_badge",
+      "docs": [
+        "Claims an unlocked achievement as a soulbound (NonTransferable)",
+        "Token-2022 badge token."
+      ],
+      "discriminator": [
+        111,
+        30,
+        18,
+        17,
+        228,
+        252,
+        239,
+        102
+      ],
+      "accounts": [
+        {
+          "name": "user",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "user_profile",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  115,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "user"
+              }
+            ]
+          }
+        },
+        {
+          "name": "badge_mint",
+          "docs": [
+            "Token-2022 mint on the first claim of this badge type."
+          ],
+          "writable": true
+        },
+        {
+          "name": "user_badge_ata",
+          "docs": [
+            "handler and the account is created idempotently via CPI."
+          ],
+          "writable": true
+        },
+        {
+          "name": "token_program",
+          "address": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
+        },
+        {
+          "name": "associated_token_program",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "badge_id",
+          "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "close_position",
+      "docs": [
+        "Settles an open position at the current Pyth price:",
+        "`payout = stake × clamp(1 + L·Δ, 0, 5)`, minus the burn fee."
+      ],
+      "discriminator": [
+        123,
+        134,
+        81,
+        0,
+        49,
+        68,
+        98,
+        98
+      ],
+      "accounts": [
+        {
+          "name": "user",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "position"
+          ]
+        },
+        {
+          "name": "config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "vault.symbol",
+                "account": "RiskVault"
+              }
+            ]
+          },
+          "relations": [
+            "position"
+          ]
+        },
+        {
+          "name": "user_profile",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  115,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "user"
+              }
+            ]
+          }
+        },
+        {
+          "name": "position",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  111,
+                  115,
+                  105,
+                  116,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "user"
+              },
+              {
+                "kind": "account",
+                "path": "vault"
+              },
+              {
+                "kind": "account",
+                "path": "position.position_id",
+                "account": "Position"
+              }
+            ]
+          }
+        },
+        {
+          "name": "price_update"
+        },
+        {
+          "name": "loyal_mint",
+          "writable": true
+        },
+        {
+          "name": "user_ata",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "user"
+              },
+              {
+                "kind": "account",
+                "path": "token_program"
+              },
+              {
+                "kind": "account",
+                "path": "loyal_mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "token_program",
+          "address": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "create_listing",
+      "docs": [
+        "Merchant lists a real-world reward purchasable with points."
+      ],
+      "discriminator": [
+        18,
+        168,
+        45,
+        24,
+        191,
+        31,
+        117,
+        54
+      ],
+      "accounts": [
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "merchant"
+          ]
+        },
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "merchant",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  101,
+                  114,
+                  99,
+                  104,
+                  97,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "authority"
+              }
+            ]
+          }
+        },
+        {
+          "name": "listing",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  108,
+                  105,
+                  115,
+                  116,
+                  105,
+                  110,
+                  103
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "merchant"
+              },
+              {
+                "kind": "account",
+                "path": "merchant.listing_count",
+                "account": "Merchant"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "title",
+          "type": "string"
+        },
+        {
+          "name": "price_points",
+          "type": "u64"
+        },
+        {
+          "name": "stock",
+          "type": "u32"
+        },
+        {
+          "name": "uri",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "create_vault",
+      "docs": [
+        "Creates a risk vault tracking one Pyth feed (admin)."
+      ],
+      "discriminator": [
+        29,
+        237,
+        247,
+        208,
+        193,
+        82,
+        54,
+        135
+      ],
+      "accounts": [
+        {
+          "name": "admin",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "config"
+          ]
+        },
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "symbol"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "symbol",
+          "type": "string"
+        },
+        {
+          "name": "pyth_feed_id",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "max_stake_per_position",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "initialize_config",
+      "docs": [
+        "Bootstraps the protocol: creates the $LOYAL Token-2022 mint",
+        "(TransferHook + MetadataPointer + TokenMetadata, authority = config",
+        "PDA) and writes the global config."
+      ],
+      "discriminator": [
+        208,
+        127,
+        21,
+        1,
+        194,
+        190,
+        196,
+        70
+      ],
+      "accounts": [
+        {
+          "name": "admin",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "loyal_mint",
+          "docs": [
+            "TransferHook + MetadataPointer + TokenMetadata extensions."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  108,
+                  111,
+                  121,
+                  97,
+                  108,
+                  45,
+                  109,
+                  105,
+                  110,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "hook_program",
+          "docs": [
+            "the mint's TransferHook extension."
+          ]
+        },
+        {
+          "name": "token_program",
+          "address": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "fee_bps",
+          "type": "u16"
+        },
+        {
+          "name": "max_leverage",
+          "type": "u8"
+        },
+        {
+          "name": "max_position_stake",
+          "type": "u64"
+        },
+        {
+          "name": "max_issue_per_tx",
+          "type": "u64"
+        },
+        {
+          "name": "max_global_exposure",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "issue_points",
+      "docs": [
+        "Mints points to a customer against a merchant-signed QR payload.",
+        "Requires a preceding Ed25519Program verification instruction; replay",
+        "is blocked by the nonce marker PDA, screenshot-sharing by the expiry."
+      ],
+      "discriminator": [
+        214,
+        72,
+        152,
+        27,
+        15,
+        87,
+        254,
+        11
+      ],
+      "accounts": [
+        {
+          "name": "user",
+          "docs": [
+            "The customer scanning the QR. Pays for the nonce marker + profile rent",
+            "(in practice the relayer is the fee payer; rent comes from the payer)."
+          ],
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "merchant",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  101,
+                  114,
+                  99,
+                  104,
+                  97,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "merchant.authority",
+                "account": "Merchant"
+              }
+            ]
+          }
+        },
+        {
+          "name": "user_profile",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  115,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "user"
+              }
+            ]
+          }
+        },
+        {
+          "name": "nonce_account",
+          "docs": [
+            "Replay guard: `init` on a deterministic (merchant, nonce) address fails",
+            "the second time the same QR is submitted."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  110,
+                  111,
+                  110,
+                  99,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "merchant"
+              },
+              {
+                "kind": "arg",
+                "path": "nonce"
+              }
+            ]
+          }
+        },
+        {
+          "name": "loyal_mint",
+          "writable": true
+        },
+        {
+          "name": "user_ata",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "user"
+              },
+              {
+                "kind": "account",
+                "path": "token_program"
+              },
+              {
+                "kind": "account",
+                "path": "loyal_mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "instructions_sysvar",
+          "address": "Sysvar1nstructions1111111111111111111111111"
+        },
+        {
+          "name": "token_program",
+          "address": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
+        },
+        {
+          "name": "associated_token_program",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "points",
+          "type": "u64"
+        },
+        {
+          "name": "nonce",
+          "type": "u64"
+        },
+        {
+          "name": "expiry_ts",
+          "type": "i64"
+        }
+      ]
+    },
+    {
+      "name": "liquidate_position",
+      "docs": [
+        "Permissionless crank: anyone may liquidate a position whose multiplier",
+        "decayed to ≤ 0.2x, earning a 1% bounty. The owner keeps the floor value",
+        "and earns the 💀 badge."
+      ],
+      "discriminator": [
+        187,
+        74,
+        229,
+        149,
+        102,
+        81,
+        221,
+        68
+      ],
+      "accounts": [
+        {
+          "name": "liquidator",
+          "docs": [
+            "Anyone may crank a drowned position — permissionless keeper surface."
+          ],
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "vault.symbol",
+                "account": "RiskVault"
+              }
+            ]
+          },
+          "relations": [
+            "position"
+          ]
+        },
+        {
+          "name": "position_owner",
+          "docs": [
+            "and used as ATA authority below. Not required to sign."
+          ]
+        },
+        {
+          "name": "owner_profile",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  115,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "position_owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "position",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  111,
+                  115,
+                  105,
+                  116,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "position_owner"
+              },
+              {
+                "kind": "account",
+                "path": "vault"
+              },
+              {
+                "kind": "account",
+                "path": "position.position_id",
+                "account": "Position"
+              }
+            ]
+          }
+        },
+        {
+          "name": "price_update"
+        },
+        {
+          "name": "loyal_mint",
+          "writable": true
+        },
+        {
+          "name": "owner_ata",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "position_owner"
+              },
+              {
+                "kind": "account",
+                "path": "token_program"
+              },
+              {
+                "kind": "account",
+                "path": "loyal_mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "liquidator_ata",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "liquidator"
+              },
+              {
+                "kind": "account",
+                "path": "token_program"
+              },
+              {
+                "kind": "account",
+                "path": "loyal_mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "token_program",
+          "address": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
+        },
+        {
+          "name": "associated_token_program",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "open_position",
+      "docs": [
+        "Opens a synthetic position: burns the stake, records the Pyth entry",
+        "price (staleness + confidence checked). Leverage ∈ {1, 2, 5}.",
+        "CPI-friendly: other programs can build on this permissionlessly."
+      ],
+      "discriminator": [
+        135,
+        128,
+        47,
+        77,
+        15,
+        152,
+        240,
+        49
+      ],
+      "accounts": [
+        {
+          "name": "user",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "vault.symbol",
+                "account": "RiskVault"
+              }
+            ]
+          }
+        },
+        {
+          "name": "user_profile",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  115,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "user"
+              }
+            ]
+          }
+        },
+        {
+          "name": "position",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  111,
+                  115,
+                  105,
+                  116,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "user"
+              },
+              {
+                "kind": "account",
+                "path": "vault"
+              },
+              {
+                "kind": "arg",
+                "path": "position_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "price_update",
+          "docs": [
+            "owner, feed id, staleness and confidence are all validated in",
+            "`read_price_1e6`."
+          ]
+        },
+        {
+          "name": "loyal_mint",
+          "writable": true
+        },
+        {
+          "name": "user_ata",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "user"
+              },
+              {
+                "kind": "account",
+                "path": "token_program"
+              },
+              {
+                "kind": "account",
+                "path": "loyal_mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "token_program",
+          "address": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "position_id",
+          "type": "u64"
+        },
+        {
+          "name": "stake",
+          "type": "u64"
+        },
+        {
+          "name": "leverage",
+          "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "redeem_reward",
+      "docs": [
+        "Redeems a coupon at the till: burns the cNFT (user + merchant both",
+        "sign) and writes a RedemptionReceipt so it can never be reused."
+      ],
+      "discriminator": [
+        20,
+        221,
+        205,
+        146,
+        25,
+        114,
+        178,
+        198
+      ],
+      "accounts": [
+        {
+          "name": "user",
+          "docs": [
+            "The coupon holder — must sign (they hand their phone QR to the till)."
+          ],
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "merchant_authority",
+          "docs": [
+            "The shop's wallet — must also sign, proving redemption happened at the",
+            "counter and not by a screenshot replay."
+          ],
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "merchant",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  101,
+                  114,
+                  99,
+                  104,
+                  97,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "merchant_authority"
+              }
+            ]
+          }
+        },
+        {
+          "name": "listing",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  108,
+                  105,
+                  115,
+                  116,
+                  105,
+                  110,
+                  103
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "listing.merchant",
+                "account": "RewardListing"
+              },
+              {
+                "kind": "account",
+                "path": "listing.listing_id",
+                "account": "RewardListing"
+              }
+            ]
+          }
+        },
+        {
+          "name": "receipt",
+          "docs": [
+            "Double-spend guard: one receipt per asset id, ever."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  101,
+                  99,
+                  101,
+                  105,
+                  112,
+                  116
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "asset_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "tree_config",
+          "writable": true
+        },
+        {
+          "name": "merkle_tree",
+          "writable": true
+        },
+        {
+          "name": "log_wrapper",
+          "address": "noopb9bkMVfRPU8AsbpTUg8AQkHtKwMYZiFUjNRtMmV"
+        },
+        {
+          "name": "compression_program",
+          "address": "cmtDvXumGCrqC1Age74AVPhSRVXJMd8PJS91L8KbNCK"
+        },
+        {
+          "name": "bubblegum_program",
+          "address": "BGUMAp9Gq7iTEuizy4pqaxsTyUCBK68MDfK752saRPUY"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "asset_id",
+          "type": "pubkey"
+        },
+        {
+          "name": "root",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "data_hash",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "creator_hash",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "leaf_nonce",
+          "type": "u64"
+        },
+        {
+          "name": "leaf_index",
+          "type": "u32"
+        }
+      ]
+    },
+    {
+      "name": "register_merchant",
+      "docs": [
+        "Registers a shop with its off-chain QR signing key."
+      ],
+      "discriminator": [
+        238,
+        245,
+        77,
+        132,
+        161,
+        88,
+        216,
+        248
+      ],
+      "accounts": [
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "merchant",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  101,
+                  114,
+                  99,
+                  104,
+                  97,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "authority"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "category",
+          "type": "string"
+        },
+        {
+          "name": "qr_signer",
+          "type": "pubkey"
+        },
+        {
+          "name": "reward_budget",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "set_coupon_tree",
+      "docs": [
+        "Records the Bubblegum merkle tree used for coupon cNFTs (admin)."
+      ],
+      "discriminator": [
+        187,
+        95,
+        217,
+        175,
+        223,
+        154,
+        252,
+        163
+      ],
+      "accounts": [
+        {
+          "name": "admin",
+          "signer": true,
+          "relations": [
+            "config"
+          ]
+        },
+        {
+          "name": "config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "args": [
+        {
+          "name": "tree",
+          "type": "pubkey"
+        }
+      ]
+    },
+    {
+      "name": "set_merchant_active",
+      "docs": [
+        "Enables/disables a merchant (admin)."
+      ],
+      "discriminator": [
+        135,
+        200,
+        111,
+        155,
+        7,
+        90,
+        21,
+        169
+      ],
+      "accounts": [
+        {
+          "name": "admin",
+          "signer": true,
+          "relations": [
+            "config"
+          ]
+        },
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "merchant",
+          "writable": true
+        }
+      ],
+      "args": [
+        {
+          "name": "active",
+          "type": "bool"
+        }
+      ]
+    },
+    {
+      "name": "set_paused",
+      "docs": [
+        "Emergency stop (admin). Gates every user-facing instruction."
+      ],
+      "discriminator": [
+        91,
+        60,
+        125,
+        192,
+        176,
+        225,
+        166,
+        218
+      ],
+      "accounts": [
+        {
+          "name": "admin",
+          "signer": true,
+          "relations": [
+            "config"
+          ]
+        },
+        {
+          "name": "config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "args": [
+        {
+          "name": "paused",
+          "type": "bool"
+        }
+      ]
+    },
+    {
+      "name": "set_vault_active",
+      "docs": [
+        "Enables/disables a vault (admin)."
+      ],
+      "discriminator": [
+        191,
+        167,
+        28,
+        251,
+        174,
+        123,
+        25,
+        113
+      ],
+      "accounts": [
+        {
+          "name": "admin",
+          "signer": true,
+          "relations": [
+            "config"
+          ]
+        },
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault",
+          "writable": true
+        }
+      ],
+      "args": [
+        {
+          "name": "active",
+          "type": "bool"
+        }
+      ]
+    },
+    {
+      "name": "update_merchant_signer",
+      "docs": [
+        "Rotates a merchant's QR signing key (merchant authority)."
+      ],
+      "discriminator": [
+        244,
+        175,
+        42,
+        166,
+        177,
+        154,
+        54,
+        176
+      ],
+      "accounts": [
+        {
+          "name": "authority",
+          "signer": true,
+          "relations": [
+            "merchant"
+          ]
+        },
+        {
+          "name": "merchant",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  101,
+                  114,
+                  99,
+                  104,
+                  97,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "authority"
+              }
+            ]
+          }
+        }
+      ],
+      "args": [
+        {
+          "name": "qr_signer",
+          "type": "pubkey"
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "Config",
+      "discriminator": [
+        155,
+        12,
+        170,
+        224,
+        30,
+        250,
+        204,
+        130
+      ]
+    },
+    {
+      "name": "IssuanceNonce",
+      "discriminator": [
+        202,
+        250,
+        43,
+        149,
+        177,
+        156,
+        98,
+        97
+      ]
+    },
+    {
+      "name": "Merchant",
+      "discriminator": [
+        71,
+        235,
+        30,
+        40,
+        231,
+        21,
+        32,
+        64
+      ]
+    },
+    {
+      "name": "Position",
+      "discriminator": [
+        170,
+        188,
+        143,
+        228,
+        122,
+        64,
+        247,
+        208
+      ]
+    },
+    {
+      "name": "RedemptionReceipt",
+      "discriminator": [
+        220,
+        43,
+        221,
+        166,
+        174,
+        69,
+        111,
+        26
+      ]
+    },
+    {
+      "name": "RewardListing",
+      "discriminator": [
+        145,
+        73,
+        144,
+        176,
+        178,
+        91,
+        5,
+        121
+      ]
+    },
+    {
+      "name": "RiskVault",
+      "discriminator": [
+        35,
+        17,
+        91,
+        11,
+        118,
+        30,
+        36,
+        2
+      ]
+    },
+    {
+      "name": "UserProfile",
+      "discriminator": [
+        32,
+        37,
+        119,
+        205,
+        179,
+        180,
+        13,
+        194
+      ]
+    }
+  ],
+  "events": [
+    {
+      "name": "BadgeClaimed",
+      "discriminator": [
+        11,
+        176,
+        119,
+        121,
+        7,
+        255,
+        229,
+        74
+      ]
+    },
+    {
+      "name": "MerchantRegistered",
+      "discriminator": [
+        202,
+        61,
+        140,
+        95,
+        139,
+        239,
+        17,
+        83
+      ]
+    },
+    {
+      "name": "PointsIssued",
+      "discriminator": [
+        230,
+        92,
+        82,
+        122,
+        130,
+        204,
+        86,
+        143
+      ]
+    },
+    {
+      "name": "PositionClosed",
+      "discriminator": [
+        157,
+        163,
+        227,
+        228,
+        13,
+        97,
+        138,
+        121
+      ]
+    },
+    {
+      "name": "PositionLiquidated",
+      "discriminator": [
+        40,
+        107,
+        90,
+        214,
+        96,
+        30,
+        61,
+        128
+      ]
+    },
+    {
+      "name": "PositionOpened",
+      "discriminator": [
+        237,
+        175,
+        243,
+        230,
+        147,
+        117,
+        101,
+        121
+      ]
+    },
+    {
+      "name": "RewardListed",
+      "discriminator": [
+        218,
+        124,
+        133,
+        213,
+        22,
+        255,
+        41,
+        100
+      ]
+    },
+    {
+      "name": "RewardPurchased",
+      "discriminator": [
+        222,
+        60,
+        15,
+        145,
+        99,
+        208,
+        164,
+        244
+      ]
+    },
+    {
+      "name": "RewardRedeemed",
+      "discriminator": [
+        122,
+        50,
+        166,
+        91,
+        18,
+        224,
+        80,
+        117
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "Paused",
+      "msg": "Protocol is paused"
+    },
+    {
+      "code": 6001,
+      "name": "AdminOnly",
+      "msg": "Only the config admin may call this instruction"
+    },
+    {
+      "code": 6002,
+      "name": "MerchantInactive",
+      "msg": "Merchant is not active"
+    },
+    {
+      "code": 6003,
+      "name": "VaultInactive",
+      "msg": "Vault is not active"
+    },
+    {
+      "code": 6004,
+      "name": "MathOverflow",
+      "msg": "Numeric overflow"
+    },
+    {
+      "code": 6005,
+      "name": "QrExpired",
+      "msg": "QR code has expired"
+    },
+    {
+      "code": 6006,
+      "name": "QrTtlTooLong",
+      "msg": "QR expiry is unreasonably far in the future"
+    },
+    {
+      "code": 6007,
+      "name": "IssueCapExceeded",
+      "msg": "Points amount exceeds the per-transaction issuance cap"
+    },
+    {
+      "code": 6008,
+      "name": "ZeroAmount",
+      "msg": "Points amount must be greater than zero"
+    },
+    {
+      "code": 6009,
+      "name": "MissingEd25519Instruction",
+      "msg": "Missing ed25519 signature-verification instruction before issue_points"
+    },
+    {
+      "code": 6010,
+      "name": "MalformedEd25519Instruction",
+      "msg": "Malformed ed25519 verification instruction"
+    },
+    {
+      "code": 6011,
+      "name": "QrSignerMismatch",
+      "msg": "QR signature was not produced by the merchant's registered signer"
+    },
+    {
+      "code": 6012,
+      "name": "QrPayloadMismatch",
+      "msg": "Signed QR payload does not match the instruction arguments"
+    },
+    {
+      "code": 6013,
+      "name": "StalePrice",
+      "msg": "Oracle price is stale"
+    },
+    {
+      "code": 6014,
+      "name": "LowConfidencePrice",
+      "msg": "Oracle confidence interval is too wide"
+    },
+    {
+      "code": 6015,
+      "name": "InvalidPrice",
+      "msg": "Oracle price is non-positive"
+    },
+    {
+      "code": 6016,
+      "name": "FeedMismatch",
+      "msg": "Price account does not match the vault's configured feed"
+    },
+    {
+      "code": 6017,
+      "name": "InvalidLeverage",
+      "msg": "Leverage must be 1, 2 or 5 and within the configured maximum"
+    },
+    {
+      "code": 6018,
+      "name": "StakeCapExceeded",
+      "msg": "Stake exceeds the vault's per-position cap"
+    },
+    {
+      "code": 6019,
+      "name": "GlobalExposureCapExceeded",
+      "msg": "Global open exposure cap reached; try again later"
+    },
+    {
+      "code": 6020,
+      "name": "PositionNotOpen",
+      "msg": "Position is not open"
+    },
+    {
+      "code": 6021,
+      "name": "BadPositionId",
+      "msg": "Position id must equal the user's current position counter"
+    },
+    {
+      "code": 6022,
+      "name": "NotLiquidatable",
+      "msg": "Position is not below the liquidation threshold"
+    },
+    {
+      "code": 6023,
+      "name": "OutOfStock",
+      "msg": "Listing is out of stock"
+    },
+    {
+      "code": 6024,
+      "name": "ListingMerchantMismatch",
+      "msg": "Listing does not belong to this merchant"
+    },
+    {
+      "code": 6025,
+      "name": "CouponTreeNotSet",
+      "msg": "Coupon tree is not configured yet; run the deploy script"
+    },
+    {
+      "code": 6026,
+      "name": "WrongCouponTree",
+      "msg": "Wrong merkle tree account for the configured coupon tree"
+    },
+    {
+      "code": 6027,
+      "name": "UnknownBadge",
+      "msg": "Unknown badge id"
+    },
+    {
+      "code": 6028,
+      "name": "BadgeNotEligible",
+      "msg": "Badge conditions not met"
+    },
+    {
+      "code": 6029,
+      "name": "BadgeAlreadyClaimed",
+      "msg": "Badge already claimed"
+    },
+    {
+      "code": 6030,
+      "name": "StringTooLong",
+      "msg": "Provided string exceeds the maximum length"
+    }
+  ],
+  "types": [
+    {
+      "name": "BadgeClaimed",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "user",
+            "type": "pubkey"
+          },
+          {
+            "name": "badge_id",
+            "type": "u8"
+          },
+          {
+            "name": "badge_mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "ts",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Config",
+      "docs": [
+        "Global protocol configuration. Singleton PDA: seeds = [\"config\"]."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "admin",
+            "type": "pubkey"
+          },
+          {
+            "name": "loyal_mint",
+            "docs": [
+              "The single coalition-wide $LOYAL Token-2022 mint (PDA, authority = config)."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "hook_program",
+            "docs": [
+              "The transfer-hook program enforcing the closed loop."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "coupon_tree",
+            "docs": [
+              "Bubblegum merkle tree used for coupon cNFTs (set post-deploy)."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "fee_bps",
+            "docs": [
+              "Settlement fee burned on position close, in basis points (e.g. 200 = 2%)."
+            ],
+            "type": "u16"
+          },
+          {
+            "name": "max_leverage",
+            "docs": [
+              "Maximum leverage allowed by governance (positions also restrict to {1,2,5})."
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "max_position_stake",
+            "docs": [
+              "Per-position stake ceiling (points)."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "max_issue_per_tx",
+            "docs": [
+              "Per-transaction issuance ceiling (points) — caps blast radius of a leaked QR signer."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "global_open_exposure",
+            "docs": [
+              "Sum of `stake * leverage` across all open positions."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "max_global_exposure",
+            "docs": [
+              "Hard cap on `global_open_exposure`; new positions are rejected above it."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "total_minted",
+            "docs": [
+              "Lifetime points minted (issuance + winnings + bounties)."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "total_burned",
+            "docs": [
+              "Lifetime points burned (stakes, losses, fees, reward purchases)."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "paused",
+            "docs": [
+              "Emergency stop for all user-facing instructions."
+            ],
+            "type": "bool"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "mint_bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "IssuanceNonce",
+      "docs": [
+        "Replay guard: `init` fails if the same (merchant, nonce) is used twice.",
+        "PDA: seeds = [\"nonce\", merchant, nonce_le_bytes]."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "merchant",
+            "type": "pubkey"
+          },
+          {
+            "name": "nonce",
+            "type": "u64"
+          },
+          {
+            "name": "used_at",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Merchant",
+      "docs": [
+        "One record per participating shop. PDA: seeds = [\"merchant\", authority]."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "docs": [
+              "Wallet that manages this merchant (panel login key)."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "qr_signer",
+            "docs": [
+              "Off-chain QR signing key (ed25519). Kept separate from `authority`",
+              "so the hot key on the shop tablet can be rotated without re-registering."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "name",
+            "type": "string"
+          },
+          {
+            "name": "category",
+            "type": "string"
+          },
+          {
+            "name": "total_issued",
+            "docs": [
+              "Lifetime points issued by this merchant."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "reward_budget",
+            "docs": [
+              "Committed reward budget (points). Issuance is accounted against it;",
+              "MVP treats it as a counter, the economics doc explains settlement."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "listing_count",
+            "docs": [
+              "Monotonic id source for this merchant's listings."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "coupons_redeemed",
+            "docs": [
+              "Lifetime coupons redeemed at this merchant."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "active",
+            "type": "bool"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "MerchantRegistered",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "merchant",
+            "type": "pubkey"
+          },
+          {
+            "name": "authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "name",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PointsIssued",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "merchant",
+            "type": "pubkey"
+          },
+          {
+            "name": "user",
+            "type": "pubkey"
+          },
+          {
+            "name": "points",
+            "type": "u64"
+          },
+          {
+            "name": "nonce",
+            "type": "u64"
+          },
+          {
+            "name": "streak_days",
+            "type": "u32"
+          },
+          {
+            "name": "ts",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Position",
+      "docs": [
+        "One synthetic position. Stake is burned on open and settlement is minted on",
+        "close — the position account itself is the escrow record.",
+        "PDA: seeds = [\"position\", user, vault, position_id_le]."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "user",
+            "type": "pubkey"
+          },
+          {
+            "name": "vault",
+            "type": "pubkey"
+          },
+          {
+            "name": "position_id",
+            "type": "u64"
+          },
+          {
+            "name": "stake",
+            "type": "u64"
+          },
+          {
+            "name": "entry_price_1e6",
+            "docs": [
+              "Entry price, 1e6 fixed point."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "leverage",
+            "type": "u8"
+          },
+          {
+            "name": "opened_ts",
+            "type": "i64"
+          },
+          {
+            "name": "status",
+            "type": {
+              "defined": {
+                "name": "PositionStatus"
+              }
+            }
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PositionClosed",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "user",
+            "type": "pubkey"
+          },
+          {
+            "name": "vault",
+            "type": "pubkey"
+          },
+          {
+            "name": "position",
+            "type": "pubkey"
+          },
+          {
+            "name": "stake",
+            "type": "u64"
+          },
+          {
+            "name": "exit_price_1e6",
+            "type": "u64"
+          },
+          {
+            "name": "payout_after_fee",
+            "type": "u64"
+          },
+          {
+            "name": "fee_burned",
+            "type": "u64"
+          },
+          {
+            "name": "pnl",
+            "type": "i64"
+          },
+          {
+            "name": "ts",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PositionLiquidated",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "user",
+            "type": "pubkey"
+          },
+          {
+            "name": "vault",
+            "type": "pubkey"
+          },
+          {
+            "name": "position",
+            "type": "pubkey"
+          },
+          {
+            "name": "liquidator",
+            "type": "pubkey"
+          },
+          {
+            "name": "stake",
+            "type": "u64"
+          },
+          {
+            "name": "exit_price_1e6",
+            "type": "u64"
+          },
+          {
+            "name": "floor_payout",
+            "type": "u64"
+          },
+          {
+            "name": "bounty",
+            "type": "u64"
+          },
+          {
+            "name": "ts",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PositionOpened",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "user",
+            "type": "pubkey"
+          },
+          {
+            "name": "vault",
+            "type": "pubkey"
+          },
+          {
+            "name": "position",
+            "type": "pubkey"
+          },
+          {
+            "name": "position_id",
+            "type": "u64"
+          },
+          {
+            "name": "stake",
+            "type": "u64"
+          },
+          {
+            "name": "leverage",
+            "type": "u8"
+          },
+          {
+            "name": "entry_price_1e6",
+            "type": "u64"
+          },
+          {
+            "name": "ts",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PositionStatus",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Open"
+          },
+          {
+            "name": "Closed"
+          },
+          {
+            "name": "Liquidated"
+          }
+        ]
+      }
+    },
+    {
+      "name": "RedemptionReceipt",
+      "docs": [
+        "Proof a coupon was consumed; the cNFT is burned in the same transaction.",
+        "PDA: seeds = [\"receipt\", asset_id]."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "asset_id",
+            "type": "pubkey"
+          },
+          {
+            "name": "user",
+            "type": "pubkey"
+          },
+          {
+            "name": "merchant",
+            "type": "pubkey"
+          },
+          {
+            "name": "listing",
+            "type": "pubkey"
+          },
+          {
+            "name": "redeemed_ts",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "RewardListed",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "merchant",
+            "type": "pubkey"
+          },
+          {
+            "name": "listing",
+            "type": "pubkey"
+          },
+          {
+            "name": "listing_id",
+            "type": "u64"
+          },
+          {
+            "name": "price_points",
+            "type": "u64"
+          },
+          {
+            "name": "stock",
+            "type": "u32"
+          }
+        ]
+      }
+    },
+    {
+      "name": "RewardListing",
+      "docs": [
+        "A merchant's reward offer. PDA: seeds = [\"listing\", merchant, listing_id_le]."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "merchant",
+            "type": "pubkey"
+          },
+          {
+            "name": "listing_id",
+            "type": "u64"
+          },
+          {
+            "name": "title",
+            "type": "string"
+          },
+          {
+            "name": "price_points",
+            "type": "u64"
+          },
+          {
+            "name": "stock",
+            "type": "u32"
+          },
+          {
+            "name": "uri",
+            "docs": [
+              "Off-chain metadata URI baked into the coupon cNFT."
+            ],
+            "type": "string"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "RewardPurchased",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "user",
+            "type": "pubkey"
+          },
+          {
+            "name": "merchant",
+            "type": "pubkey"
+          },
+          {
+            "name": "listing",
+            "type": "pubkey"
+          },
+          {
+            "name": "price_points",
+            "type": "u64"
+          },
+          {
+            "name": "remaining_stock",
+            "type": "u32"
+          },
+          {
+            "name": "ts",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "RewardRedeemed",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "user",
+            "type": "pubkey"
+          },
+          {
+            "name": "merchant",
+            "type": "pubkey"
+          },
+          {
+            "name": "listing",
+            "type": "pubkey"
+          },
+          {
+            "name": "asset_id",
+            "type": "pubkey"
+          },
+          {
+            "name": "ts",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "RiskVault",
+      "docs": [
+        "A synthetic-exposure vault tracking one Pyth feed. PDA: seeds = [\"vault\", symbol]."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "symbol",
+            "type": "string"
+          },
+          {
+            "name": "pyth_feed_id",
+            "docs": [
+              "Pyth price feed id (32 bytes, hex id from Hermes without 0x)."
+            ],
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "open_exposure",
+            "docs": [
+              "Sum of `stake * leverage` across open positions in this vault."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "max_stake_per_position",
+            "type": "u64"
+          },
+          {
+            "name": "positions_opened",
+            "docs": [
+              "Lifetime positions opened, for stats."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "active",
+            "type": "bool"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "UserProfile",
+      "docs": [
+        "Per-wallet loyalty profile. PDA: seeds = [\"user\", wallet]."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "wallet",
+            "type": "pubkey"
+          },
+          {
+            "name": "earned_total",
+            "type": "u64"
+          },
+          {
+            "name": "spent_total",
+            "type": "u64"
+          },
+          {
+            "name": "streak_days",
+            "type": "u32"
+          },
+          {
+            "name": "last_earn_ts",
+            "type": "i64"
+          },
+          {
+            "name": "tier",
+            "docs": [
+              "0 Bronze, 1 Silver, 2 Gold, 3 Degen."
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "degen_score",
+            "docs": [
+              "Cumulative realized PnL from the risk vaults (can go negative)."
+            ],
+            "type": "i64"
+          },
+          {
+            "name": "position_count",
+            "docs": [
+              "Monotonic id source for this user's positions."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "positions_closed",
+            "type": "u64"
+          },
+          {
+            "name": "times_liquidated",
+            "type": "u32"
+          },
+          {
+            "name": "badge_eligible",
+            "docs": [
+              "Bitmask of badge conditions the user has unlocked (see `Badge`)."
+            ],
+            "type": "u32"
+          },
+          {
+            "name": "badges",
+            "docs": [
+              "Bitmask of badges actually claimed (soulbound token minted)."
+            ],
+            "type": "u32"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    }
+  ]
+}

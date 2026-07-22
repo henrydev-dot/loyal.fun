@@ -20,7 +20,7 @@ import { getMerchantWallet, getMerchantQrSigner } from "@/lib/wallet";
 import { getProgram } from "@/lib/program";
 import { sendSponsored } from "@/lib/relayer";
 import { configPda } from "@/lib/pdas";
-import { CORE_PROGRAM_ID } from "@/lib/config";
+import { CORE_PROGRAM_ID, RELAYER_URL } from "@/lib/config";
 import TxToast from "@/components/TxToast";
 import {
   IconAlert,
@@ -215,7 +215,7 @@ export default function MerchantPage() {
           // Co-sign as merchant authority, then let the relayer pay the fee.
           tx.partialSign(getMerchantWallet());
           const res = await fetch(
-            `${process.env.NEXT_PUBLIC_RELAYER_URL ?? "http://localhost:8787"}/sponsor`,
+            `${RELAYER_URL}/sponsor`,
             {
               method: "POST",
               headers: { "content-type": "application/json" },
