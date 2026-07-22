@@ -10,13 +10,30 @@
   🇵🇱 Polski (ten plik) · <a href="README.en.md">🇬🇧 English</a>
 </p>
 
+<table align="center">
+  <tr>
+    <td align="center" width="200">
+      <img src="docs/demo-qr.png" width="170" alt="QR do demo" /><br/>
+      <sub><b>Zeskanuj telefonem</b><br/>i testuj od razu</sub>
+    </td>
+    <td>
+      <b>Szybki start (Solana Devnet, bez portfela i bez SOL):</b><br/><br/>
+      1. Otwórz <a href="https://loyalfun.vercel.app/demo-merchant"><code>/demo-merchant</code></a> na laptopie — jedno dotknięcie rejestruje kasę demo<br/>
+      2. Wybierz kwotę → pojawia się podpisany, 60-sekundowy QR sprzedaży<br/>
+      3. Telefonem otwórz <a href="https://loyalfun.vercel.app">loyalfun.vercel.app</a> → <b>Scan</b> (albo zeskanuj QR zwykłym aparatem — to głęboki link)<br/>
+      4. Punkty wpadają na wbudowany portfel → zakładka <b>Degen</b>: pozycja 5× na BONK → <b>Market</b>: kupon cNFT → <b>Profile</b>: odznaka soulbound<br/><br/>
+      <a href="https://loyalfun.vercel.app">Aplikacja</a> · <a href="https://loyalfun.vercel.app/merchant">Panel sklepu</a> · <a href="https://loyalfun.vercel.app/demo-merchant">Kiosk testowy</a> · <a href="https://loyalfun.vercel.app/api/health">Status API</a>
+    </td>
+  </tr>
+</table>
+
 ---
 
 loyal.fun zamienia punkty lojalnościowe małych sklepów w żywe aktywo na Solanie. Punkty to **zamknięty obieg Token-2022** ($LOYAL) zdobywany przez podpisane kody QR sprzedawcy, **stakowalny** w syntetyczne pozycje wyceniane oraklem Pyth (dźwignia 1×/2×/5×), **wydawalny** na prawdziwe nagrody bite jako **skompresowane NFT (cNFT)** i **kolekcjonowalny** jako odznaki **soulbound** — łącznie z odznaką za likwidację pozycji.
 
 **Live demo:** [loyalfun.vercel.app](https://loyalfun.vercel.app) · klienci: `/` · sklep: [`/merchant`](https://loyalfun.vercel.app/merchant) · kiosk testowy: [`/demo-merchant`](https://loyalfun.vercel.app/demo-merchant) · **Sieć:** Solana Devnet
 
-<!-- DEMO-VIDEO -->
+<p align="center"><img src="docs/demo.gif" width="280" alt="Nagranie demo — pełna pętla na telefonie" /></p>
 
 ## Zrzuty ekranu
 

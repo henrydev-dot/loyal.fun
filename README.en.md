@@ -10,13 +10,30 @@
   <a href="README.md">🇵🇱 Polski</a> · 🇬🇧 English (this file)
 </p>
 
+<table align="center">
+  <tr>
+    <td align="center" width="200">
+      <img src="docs/demo-qr.png" width="170" alt="Demo QR" /><br/>
+      <sub><b>Scan with your phone</b><br/>and test right away</sub>
+    </td>
+    <td>
+      <b>Quick start (Solana Devnet — no wallet, no SOL needed):</b><br/><br/>
+      1. Open <a href="https://loyalfun.vercel.app/demo-merchant"><code>/demo-merchant</code></a> on a laptop — one tap registers the demo till<br/>
+      2. Pick an amount → a signed, 60-second sale QR appears<br/>
+      3. On your phone open <a href="https://loyalfun.vercel.app">loyalfun.vercel.app</a> → <b>Scan</b> (or scan the QR with the native camera — it's a deep link)<br/>
+      4. Points land in the embedded wallet → <b>Degen</b> tab: 5× BONK position → <b>Market</b>: cNFT coupon → <b>Profile</b>: soulbound badge<br/><br/>
+      <a href="https://loyalfun.vercel.app">App</a> · <a href="https://loyalfun.vercel.app/merchant">Merchant panel</a> · <a href="https://loyalfun.vercel.app/demo-merchant">Test kiosk</a> · <a href="https://loyalfun.vercel.app/api/health">API status</a>
+    </td>
+  </tr>
+</table>
+
 ---
 
 loyal.fun turns small-shop loyalty points into a living on-chain asset on Solana. Points are a **closed-loop Token-2022 mint** ($LOYAL) earned via merchant-signed QR codes, **stakeable** into synthetic Pyth-priced positions (1×/2×/5× leverage), **spendable** on real-world rewards minted as **compressed NFTs (cNFTs)**, and **collectible** as **soulbound badges** — including one for getting liquidated.
 
 **Live demo:** [loyalfun.vercel.app](https://loyalfun.vercel.app) · customers: `/` · shop: [`/merchant`](https://loyalfun.vercel.app/merchant) · test kiosk: [`/demo-merchant`](https://loyalfun.vercel.app/demo-merchant) · **Network:** Solana Devnet
 
-<!-- DEMO-VIDEO -->
+<p align="center"><img src="docs/demo.gif" width="280" alt="Demo recording — the full loop on a phone" /></p>
 
 ## Screenshots
 
