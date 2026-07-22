@@ -22,6 +22,25 @@ export async function relayerFeePayer(): Promise<PublicKey> {
 }
 
 /**
+ * Rent guard: the relayer pays FEES, but `init`ed accounts (profile, nonce
+ * markers, ATAs, merchant) debit rent from the burner wallet itself. Ask the
+ * relayer to top the wallet up with a sliver of devnet SOL when it runs dry.
+ */
+export async function ensureFunded(owner: PublicKey): Promise<void> {
+  const balance = await connection.getBalance(owner).catch(() => 0);
+  if (balance >= 0.005 * 1e9) return;
+  const res = await fetch(`${RELAYER_URL}/fund`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ address: owner.toBase58() }),
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error((body as any).error ?? "wallet funding failed");
+  }
+}
+
+/**
  * Builds a legacy transaction with the relayer as fee payer, signs it with
  * the user's burner key(s), and submits it through POST /sponsor.
  */
@@ -29,6 +48,9 @@ export async function sendSponsored(
   instructions: TransactionInstruction[],
   signers: Keypair[]
 ): Promise<string> {
+  if (signers.length > 0) {
+    await ensureFunded(signers[0].publicKey);
+  }
   const feePayer = await relayerFeePayer();
   const { blockhash } = await connection.getLatestBlockhash();
 

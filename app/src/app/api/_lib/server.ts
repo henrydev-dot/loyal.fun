@@ -12,7 +12,8 @@ import bs58 from "bs58";
 export const SERVER_RPC_URL =
   process.env.RPC_URL ??
   process.env.NEXT_PUBLIC_RPC_URL ??
-  "https://api.devnet.solana.com";
+  // Same DAS-capable devnet default as the client (lib/config.ts).
+  "https://devnet.helius-rpc.com/?api-key=b7b947ab-fb56-4f3d-9604-cfdb67967b95";
 
 export function serverConnection(): Connection {
   return new Connection(SERVER_RPC_URL, "confirmed");

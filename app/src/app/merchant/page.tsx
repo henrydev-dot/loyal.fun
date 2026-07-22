@@ -18,7 +18,7 @@ import QRCode from "qrcode";
 import nacl from "tweetnacl";
 import { getMerchantWallet, getMerchantQrSigner } from "@/lib/wallet";
 import { getProgram } from "@/lib/program";
-import { sendSponsored } from "@/lib/relayer";
+import { ensureFunded, sendSponsored } from "@/lib/relayer";
 import { configPda } from "@/lib/pdas";
 import { CORE_PROGRAM_ID, RELAYER_URL } from "@/lib/config";
 import TxToast from "@/components/TxToast";
@@ -213,6 +213,8 @@ export default function MerchantPage() {
           if (parsed.kind !== "loyal.fun/redeem-tx") throw new Error("not a coupon QR");
           const tx = Transaction.from(Buffer.from(parsed.tx, "base64"));
           // Co-sign as merchant authority, then let the relayer pay the fee.
+          // (The redemption receipt's rent is debited from the merchant.)
+          await ensureFunded(getMerchantWallet().publicKey);
           tx.partialSign(getMerchantWallet());
           const res = await fetch(
             `${RELAYER_URL}/sponsor`,
