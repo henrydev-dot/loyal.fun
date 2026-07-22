@@ -130,27 +130,46 @@ async function main() {
   const umi = createUmi(RPC_URL).use(mplBubblegum());
   umi.use(keypairIdentity(umi.eddsa.createKeypairFromSecretKey(admin.secretKey)));
 
-  const merkleTreeSigner = generateSigner(umi);
-  // 2^14 = 16k coupons for well under a SOL of rent — compression economics.
-  // canopyDepth 10 keeps redemption proofs at 4 nodes so the whole
-  // burn-to-redeem transaction fits in a QR-sized payload.
-  await (
-    await createTree(umi, {
-      merkleTree: merkleTreeSigner,
-      maxDepth: 14,
-      maxBufferSize: 64,
-      canopyDepth: 10,
-      public: false,
-    })
-  ).sendAndConfirm(umi);
-  const merkleTree = new PublicKey(merkleTreeSigner.publicKey.toString());
-  console.log(`coupon tree: ${merkleTree.toBase58()} (${explorerAddr(merkleTree)})`);
+  let merkleTree: PublicKey;
+  if (process.env.EXISTING_TREE) {
+    // Reuse a tree from a previous (partially failed) run instead of paying
+    // rent for a fresh one.
+    merkleTree = new PublicKey(process.env.EXISTING_TREE);
+    console.log(`reusing coupon tree: ${merkleTree.toBase58()}`);
+  } else {
+    const merkleTreeSigner = generateSigner(umi);
+    // 2^14 = 16k coupons for well under a SOL of rent — compression economics.
+    // canopyDepth 10 keeps redemption proofs at 4 nodes so the whole
+    // burn-to-redeem transaction fits in a QR-sized payload.
+    await (
+      await createTree(umi, {
+        merkleTree: merkleTreeSigner,
+        maxDepth: 14,
+        maxBufferSize: 64,
+        canopyDepth: 10,
+        public: false,
+      })
+    ).sendAndConfirm(umi, { confirm: { commitment: "finalized" } });
+    merkleTree = new PublicKey(merkleTreeSigner.publicKey.toString());
+    console.log(`coupon tree: ${merkleTree.toBase58()} (${explorerAddr(merkleTree)})`);
+  }
 
-  await setTreeDelegate(umi, {
-    merkleTree: merkleTreeSigner.publicKey,
-    newTreeDelegate: umiPk(config.toBase58()),
-  }).sendAndConfirm(umi);
-  console.log("tree delegate -> config PDA");
+  // The tree config PDA can take a moment to be visible — retry the
+  // delegation a few times instead of racing the cluster.
+  for (let attempt = 1; ; attempt++) {
+    try {
+      await setTreeDelegate(umi, {
+        merkleTree: umiPk(merkleTree.toBase58()),
+        newTreeDelegate: umiPk(config.toBase58()),
+      }).sendAndConfirm(umi);
+      console.log("tree delegate -> config PDA");
+      break;
+    } catch (err) {
+      if (attempt >= 5) throw err;
+      console.log(`setTreeDelegate attempt ${attempt} failed, retrying in 5s…`);
+      await new Promise((resolve) => setTimeout(resolve, 5_000));
+    }
+  }
 
   const sigTree = await core.methods
     .setCouponTree(merkleTree)

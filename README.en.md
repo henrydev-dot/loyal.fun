@@ -14,7 +14,7 @@
 
 loyal.fun turns small-shop loyalty points into a living on-chain asset on Solana. Points are a **closed-loop Token-2022 mint** ($LOYAL) earned via merchant-signed QR codes, **stakeable** into synthetic Pyth-priced positions (1×/2×/5× leverage), **spendable** on real-world rewards minted as **compressed NFTs (cNFTs)**, and **collectible** as **soulbound badges** — including one for getting liquidated.
 
-**Live demo:** *(placeholder — Vercel URL)* · **Network:** Solana Devnet
+**Live demo:** [loyalfun.vercel.app](https://loyalfun.vercel.app) · **Network:** Solana Devnet
 
 ## Screenshots
 
@@ -132,14 +132,19 @@ Every state change emits an Anchor event (`PointsIssued`, `PositionOpened/Closed
 
 | Action | Transaction |
 |---|---|
-| `issue_points` (+2000 $LOYAL via signed QR) | *run `npm run seed:devnet`* |
-| `open_position` (5× long BONK) | *…* |
-| `close_position` (PnL settled, 2% burned) | *…* |
-| `buy_reward` (coffee coupon cNFT minted) | *…* |
-| `redeem_reward` (coupon burned + receipt) | *…* |
-| `claim_badge` ("First Blood", soulbound) | *…* |
+| `issue_points` (+2000 $LOYAL, signed QR) | [`3XN52mFq…`](https://explorer.solana.com/tx/3XN52mFqXrNoYuJKv1vLPv9p6vo8GAk5XpN8yDFHi1iR1mFh1ScmiyCXUDgSxgHUPe3Toq5VfAUtJLYaJnY8uvXV?cluster=devnet) |
+| `open_position` (5× long BONK, 1000 pts, Pyth price) | [`4vqQunBh…`](https://explorer.solana.com/tx/4vqQunBhGo6QtMP1ujy8nQsD7VhDFkPFKHEXL2oDuHaDPrexfKK9XfBZvsTUB1t1C7vTwLYbwWvMN2kTm4VswSMh?cluster=devnet) |
+| `close_position` (PnL settled, 2% burned) | [`2BUKdfvo…`](https://explorer.solana.com/tx/2BUKdfvopagkU1DKTKZ5GZNz7uFaBvQrzDA7uVhhfcENTE6BptbNTX1Rczs6VWqc4S4VrUtarPA6vcQcSb7gYg7i?cluster=devnet) |
+| `buy_reward` ("1 Free Coffee" coupon as a cNFT) | [`1dTEdBAt…`](https://explorer.solana.com/tx/1dTEdBAt4JWbQV5r8ohipwSuMQjmeQH8YMBit6oMDMWLbh8Vh4z1ykFabtSLirLmXbmNHhkx3n7aweu7zRn1zDu?cluster=devnet) |
+| `claim_badge` ("First Blood", soulbound Token-2022) | [`2q5ECBmn…`](https://explorer.solana.com/tx/2q5ECBmnjx5XqZ5djAEorJG1LMqdeHgTKcPQXqNBWvu14iBg5cusC5r8k9Ujcw16KJwzPs21Xxfc63J8MViKbsum?cluster=devnet) |
+| `register_merchant` ("Kadıköy Coffee Lab") | [`3ER1byXs…`](https://explorer.solana.com/tx/3ER1byXsr9uxij9pBaHenLki8EGSW4eNFjcqYFoFij9uCzzS2TQ9dN1eWMj2YRpP9CkMHEf9DCZ3DPVCHUGcWhRV?cluster=devnet) |
+| `create_vault` (BONK, Pyth feed) | [`2sQahaiU…`](https://explorer.solana.com/tx/2sQahaiUwQMX7X4nB58GwhbSPaaYNG71n7WA6asR3u7bXCEVX7sRhi2d9U8RuAVDBCitWUR5NDjHM64tp4cKSB7X?cluster=devnet) |
+Coupon redemption (`redeem_reward`, dual signature + cNFT burn) is exercised in-app at the till — see section 7.4.
 
-> After deploying, replace this table with the actual `seed_demo.ts` output — the Explorer links are a **competition requirement**.
+| Asset | Address |
+|---|---|
+| $LOYAL mint (Token-2022) | [`DAP9CzagNJWbe1xAv878dA9iqLqs25jvyLxRBNtQGuUj`](https://explorer.solana.com/address/DAP9CzagNJWbe1xAv878dA9iqLqs25jvyLxRBNtQGuUj?cluster=devnet) |
+| Coupon tree (Bubblegum) | [`55LzrjDNE8gqmqaArAZPrYmmwvAzoCkRuyst9kwDGAoC`](https://explorer.solana.com/address/55LzrjDNE8gqmqaArAZPrYmmwvAzoCkRuyst9kwDGAoC?cluster=devnet) |
 
 ## 6. Install & run
 

@@ -239,7 +239,9 @@ async function main() {
     })[0];
     console.log(`coupon asset id: ${assetId}`);
 
-    const proof = await getAssetWithProof(umi, assetId, { truncateCanopy: true });
+    // `as any`: the root and mpl-bubblegum-nested copies of the DAS api
+    // package declare structurally-identical but nominally-distinct types.
+    const proof = await getAssetWithProof(umi as any, assetId, { truncateCanopy: true });
     const receipt = PublicKey.findProgramAddressSync(
       [Buffer.from("receipt"), new PublicKey(assetId.toString()).toBuffer()],
       core.programId

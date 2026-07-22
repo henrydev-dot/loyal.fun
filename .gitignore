@@ -29,3 +29,4 @@ relayer/.keys/
 # Build outputs
 dist/
 *.tsbuildinfo
+.deploy-out.json
