@@ -11,10 +11,12 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0D0B09",
+  themeColor: "#0B0908",
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
+  // No maximumScale: pinch-zoom must stay available (WCAG 1.4.4) — the
+  // exported secret key is unreadable without it.
+  viewportFit: "cover",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -30,7 +32,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body>
         <div className="mx-auto max-w-md min-h-dvh flex flex-col">
-          <main className="flex-1 px-4 pt-6 pb-28">{children}</main>
+          <main className="flex-1 px-4 pt-6 pb-32">{children}</main>
           <TabBar />
         </div>
       </body>

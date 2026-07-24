@@ -5,7 +5,7 @@
  */
 import { NextResponse } from "next/server";
 import { PythSolanaReceiver } from "@pythnetwork/pyth-solana-receiver";
-import { loadFeePayer, serverConnection } from "../../_lib/server";
+import { loadFeePayer, rateLimit, safeError, serverConnection } from "../../_lib/server";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -18,9 +18,15 @@ const FEEDS: Record<string, string> = {
 };
 
 export async function POST(
-  _req: Request,
+  req: Request,
   { params }: { params: { symbol: string } }
 ) {
+  // Each call writes a rent-paying account on-chain, so this is the most
+  // expensive endpoint to leave open.
+  if (!rateLimit(req, 20, "price")) {
+    return NextResponse.json({ error: "too many requests" }, { status: 429 });
+  }
+
   try {
     const feedId = FEEDS[params.symbol?.toUpperCase() ?? ""];
     if (!feedId) {
@@ -62,13 +68,15 @@ export async function POST(
     await builder.addPostPriceUpdates(update.binary.data);
     const priceUpdateAccount = builder.getPriceUpdateAccount(feedId).toBase58();
     await receiver.provider.sendAll(
-      await builder.buildVersionedTransactions({ computeUnitPriceMicroLamports: 100_000 }),
+      // Devnet has no fee market worth bidding into; 100k µlamports/CU was
+      // burning priority fees for nothing.
+      await builder.buildVersionedTransactions({ computeUnitPriceMicroLamports: 1_000 }),
       { skipPreflight: false }
     );
 
     return NextResponse.json({ priceUpdateAccount, feedId });
   } catch (err) {
     console.error("price post error:", err);
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    return NextResponse.json({ error: safeError(err, "price post failed") }, { status: 500 });
   }
 }

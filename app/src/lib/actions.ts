@@ -5,6 +5,7 @@
  */
 import * as anchor from "@coral-xyz/anchor";
 import {
+  ComputeBudgetProgram,
   Ed25519Program,
   Keypair,
   PublicKey,
@@ -79,15 +80,29 @@ export async function loyalBalance(wallet: PublicKey): Promise<bigint> {
   }
 }
 
+/** Returns null when the profile genuinely doesn't exist yet. */
 export async function fetchProfile(wallet: Keypair): Promise<any | null> {
   const program = await getProgram(wallet);
   try {
     return await (program.account as any).userProfile.fetch(
       userProfilePda(wallet.publicKey)
     );
-  } catch {
-    return null;
+  } catch (err) {
+    if (isAccountMissing(err)) return null;
+    // A network blip must not masquerade as "new user" — callers that need
+    // real state (position ids, tier) would silently act on zeros.
+    throw err;
   }
+}
+
+/** Anchor/web3 spell "not found" several ways; treat only those as absent. */
+export function isAccountMissing(err: unknown): boolean {
+  const text = String(err);
+  return (
+    /Account does not exist/i.test(text) ||
+    /could not find/i.test(text) ||
+    /AccountNotFound/i.test(text)
+  );
 }
 
 export interface OpenPositionArgs {
@@ -103,8 +118,13 @@ export async function openPosition(
   args: OpenPositionArgs
 ): Promise<string> {
   const program = await getProgram(wallet);
+  // Must be the live counter: the program enforces
+  // `position_id == profile.position_count`.
   const profile = await fetchProfile(wallet);
-  const positionId = BigInt(profile?.positionCount?.toString() ?? "0");
+  if (!profile) {
+    throw new Error("Earn some points before opening a position.");
+  }
+  const positionId = BigInt(profile.positionCount.toString());
   const vault = vaultPda(args.symbol);
 
   const ix = await program.methods
@@ -202,7 +222,10 @@ export async function buyReward(
     })
     .instruction();
 
-  return sendSponsored([ix], [wallet]);
+  return sendSponsored(
+    [ComputeBudgetProgram.setComputeUnitLimit({ units: 400_000 }), ix],
+    [wallet]
+  );
 }
 
 export async function fetchConfig(wallet: Keypair): Promise<any> {

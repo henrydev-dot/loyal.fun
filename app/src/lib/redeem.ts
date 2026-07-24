@@ -25,8 +25,12 @@ const BUBBLEGUM = new PublicKey("BGUMAp9Gq7iTEuizy4pqaxsTyUCBK68MDfK752saRPUY");
 const NOOP = new PublicKey("noopb9bkMVfRPU8AsbpTUg8AQkHtKwMYZiFUjNRtMmV");
 const COMPRESSION = new PublicKey("cmtDvXumGCrqC1Age74AVPhSRVXJMd8PJS91L8KbNCK");
 
-/** Proof nodes required = maxDepth (14) - canopyDepth (10). */
-const PROOF_LEN = 4;
+/**
+ * Proof nodes to send = maxDepth - canopyDepth. The deploy script builds a
+ * depth-14 tree with a depth-10 canopy, so 4 — but derive it from the proof
+ * the RPC returns rather than trusting that forever.
+ */
+const CANOPY_DEPTH = 10;
 
 export async function buildRedeemTxBase64(
   wallet: Keypair,
@@ -34,12 +38,20 @@ export async function buildRedeemTxBase64(
 ): Promise<string> {
   const program = await getProgram(wallet);
 
-  // Coupon -> listing: the coupon cNFT's name is the listing title (set at
-  // purchase). Demo-grade matching; production would carry the listing id in
-  // the coupon's on-chain uri.
+  // Coupon -> listing. Preferred: the listing PDA is encoded in the coupon's
+  // URI at purchase (`?listing=<pda>`), which is unambiguous. Fallback for
+  // coupons minted before that: match the cNFT name, which the program
+  // truncates to 32 chars, against the same truncation of each title.
   const listings = await (program.account as any).rewardListing.all();
-  const listing = listings.find((l: any) => l.account.title === coupon.name);
-  if (!listing) throw new Error(`no listing matches coupon "${coupon.name}"`);
+  const fromUri = coupon.uri.match(/[?&]listing=([1-9A-HJ-NP-Za-km-z]{32,44})/)?.[1];
+  const listing = fromUri
+    ? listings.find((l: any) => l.publicKey.toBase58() === fromUri)
+    : listings.find((l: any) => String(l.account.title).slice(0, 32) === coupon.name);
+  if (!listing) {
+    throw new Error(
+      `No listing matches this coupon${fromUri ? "" : ` ("${coupon.name}")`}. It may belong to a shop that removed the reward.`
+    );
+  }
 
   const merchantAcc: any = await (program.account as any).merchant.fetch(
     listing.account.merchant
@@ -81,7 +93,7 @@ export async function buildRedeemTxBase64(
       systemProgram: SystemProgram.programId,
     })
     .remainingAccounts(
-      proof.proof.slice(0, PROOF_LEN).map((node) => ({
+      proof.proof.slice(0, Math.max(0, proof.proof.length - CANOPY_DEPTH)).map((node) => ({
         pubkey: new PublicKey(node),
         isSigner: false,
         isWritable: false,

@@ -8,7 +8,21 @@ import nacl from "tweetnacl";
 import { getMerchantQrSigner, getMerchantWallet } from "./wallet";
 import { CORE_PROGRAM_ID } from "./config";
 
+/** Countdown shown at the till. */
 export const QR_TTL_SECS = 60;
+/**
+ * Signed validity. Longer than the countdown on purpose: a code scanned at
+ * t=58s needs time to confirm, and `issue_points` rejects `expiry <= now`.
+ * The program's own ceiling is MAX_QR_TTL_SECS = 600.
+ */
+const QR_SIGNED_TTL_SECS = 150;
+
+/** 64 bits of CSPRNG — a timestamp-derived nonce leaks when it was made. */
+function randomNonce(): bigint {
+  const bytes = new Uint8Array(8);
+  crypto.getRandomValues(bytes);
+  return Buffer.from(bytes).readBigUInt64LE();
+}
 
 export function demoMerchantPda(): PublicKey {
   return PublicKey.findProgramAddressSync(
@@ -20,9 +34,8 @@ export function demoMerchantPda(): PublicKey {
 /** Returns the JSON string the customer app expects inside the QR. */
 export function makeSaleQrPayload(points: number): string {
   const merchant = demoMerchantPda();
-  const nonce =
-    BigInt(Date.now()) * 1000n + BigInt(Math.floor(Math.random() * 1000));
-  const expiry = BigInt(Math.floor(Date.now() / 1000) + QR_TTL_SECS);
+  const nonce = randomNonce();
+  const expiry = BigInt(Math.floor(Date.now() / 1000) + QR_SIGNED_TTL_SECS);
 
   const msg = Buffer.alloc(56);
   merchant.toBuffer().copy(msg, 0);

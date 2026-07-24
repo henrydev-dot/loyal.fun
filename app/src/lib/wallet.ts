@@ -57,7 +57,17 @@ export function getWallet(): Keypair {
 
 export function exportWallet(): string | null {
   if (typeof window === "undefined") return null;
-  return window.localStorage.getItem(STORAGE_KEY);
+  // storageGet, not localStorage directly: in Safari private mode the wallet
+  // lives in the memory fallback and a direct read returns null — an empty
+  // box in the one flow that exists to prevent losing the key.
+  return storageGet(STORAGE_KEY);
+}
+
+/** Restores a wallet from an exported base58 secret key. Throws if invalid. */
+export function importWallet(secretBase58: string): Keypair {
+  const restored = Keypair.fromSecretKey(bs58.decode(secretBase58.trim()));
+  storageSet(STORAGE_KEY, bs58.encode(restored.secretKey));
+  return restored;
 }
 
 // ---------------------------------------------------------------------------
