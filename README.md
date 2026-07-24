@@ -46,15 +46,35 @@ loyal.fun zamienia punkty lojalnościowe małych sklepów w żywe aktywo na Sola
 
 ## Zrzuty ekranu
 
-| Start | Skanowanie | Risk vaults |
+| Start | Risk vaults | Leaderboard |
 |---|---|---|
-| ![Home](docs/screenshots/home.png) | ![Scan](docs/screenshots/scan.png) | ![Degen](docs/screenshots/degen.png) |
+| ![Home](docs/screenshots/home.png) | ![Degen](docs/screenshots/degen.png) | ![Leaderboard](docs/screenshots/leaderboard.png) |
 
-| Market nagród | Profil i odznaki | Panel sprzedawcy |
+| Market nagród | Sklepy koalicji | Profil i odznaki |
 |---|---|---|
-| ![Market](docs/screenshots/market.png) | ![Profile](docs/screenshots/profile.png) | ![Merchant](docs/screenshots/merchant.png) |
+| ![Market](docs/screenshots/market.png) | ![Shops](docs/screenshots/shops.png) | ![Profile](docs/screenshots/profile.png) |
 
-Aplikacja kliencka jest w języku angielskim (PWA, mobile-first); dashboard sprzedawcy działa pod `/merchant` na tablecie sklepu.
+| Skanowanie | Panel sprzedawcy |
+|---|---|
+| ![Scan](docs/screenshots/scan.png) | ![Merchant](docs/screenshots/merchant.png) |
+
+Aplikacja kliencka jest w języku angielskim (PWA, mobile-first); dashboard sprzedawcy działa pod `/merchant` na tablecie sklepu. Wszystkie liczby na zrzutach pochodzą z devnetu — nic nie jest zaślepką.
+
+## Powierzchnie aplikacji
+
+| Ekran | Co robi | Skąd bierze dane |
+|---|---|---|
+| **Home** | Saldo, **odliczanie do wygaśnięcia serii** (okno 48 h), postęp do kolejnego tieru, puls protokołu | `UserProfile.last_earn_ts`, progi z `constants.rs`, `Config` |
+| **Scan** | Aparat lub wklejony payload → `issue_points`; QR to głęboki link, więc czyta go też zwykły aparat | podpis ed25519 weryfikowany on-chain |
+| **Risk vaults** | Rynki z wykresami Pyth, arkusz otwarcia z **podglądem ceny likwidacji i scenariuszy wypłaty** (dokładna matematyka programu, z opłatą), mierniki ryzyka, potwierdzenie zamknięcia, historia pozycji | `RiskVault`, `Position`, `Config`, Pyth Hermes |
+| **Market** | Nagrody pogrupowane po sklepach, kupony cNFT, kod realizacji przy ladzie | `RewardListing`, `Merchant`, DAS |
+| **Leaderboard** | Najlepsi traderzy, zbieracze, serie i odznaki — z podświetleniem własnego wiersza | wszystkie konta `UserProfile` |
+| **Shops** | Katalog koalicji + strona sklepu z jego nagrodami | `Merchant`, `RewardListing` |
+| **Profile** | Statystyki, półka odznak soulbound, aktywność, kopia zapasowa portfela | `UserProfile`, lokalny dziennik |
+| **/merchant** | Rejestracja, QR sprzedaży, listingi, skaner realizacji + **wykrywanie utraty klucza QR** z naprawą jednym kliknięciem | `Merchant`, `RewardListing` |
+| **/demo-merchant** | Kiosk testowy: jedno dotknięcie i gotowe kody sprzedaży | jak wyżej |
+
+Żadna z tych powierzchni nie wymagała zmiany programu — wszystko czyta konta, które już istnieją on-chain.
 
 ## 1. Problem, który rozwiązujemy
 
@@ -137,6 +157,19 @@ flowchart LR
 | `set_paused` / `set_coupon_tree` | admin | wyłącznik awaryjny / podpięcie drzewa |
 
 Każda zmiana stanu emituje event Anchora (`PointsIssued`, `PositionOpened/Closed/Liquidated`, `RewardPurchased/Redeemed`, `BadgeClaimed`).
+
+
+### Bezpieczeństwo relayera
+
+Relayer trzyma finansowany klucz devnetowy i podpisuje to, co dostanie, więc walidacja **jest** całą obroną:
+
+1. Płatnikiem opłat musimy być my (slot 0).
+2. Każda instrukcja musi celować w program z whitelisty.
+3. **Żadna instrukcja nie może używać płatnika jako konta.** To najważniejszy punkt: System Program musi być na whiteliście (konta są tworzone), więc bez tej reguły wywołujący mógłby wysłać `SystemProgram.transfer` *z* portfela relayera i opróżnić go jednym żądaniem.
+4. Brak address-lookup tables — ukryłyby konta przed powyższymi kontrolami.
+5. Limit zapytań per IP; doładowania czynszu jadą razem z już zwalidowaną transakcją, zamiast osobnego, otwartego kranu.
+
+Panel sprzedawcy **nigdy nie podpisuje nieodczytanej transakcji**: `lib/verifyRedeem.ts` sprawdza dyskryminator i konta, zanim klucz sklepu w ogóle ją zobaczy — inaczej wrogi kod QR mógłby przenieść `update_merchant_signer` i przejąć sklep.
 
 ## 4. Kompromisy projektowe
 

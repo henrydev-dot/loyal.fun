@@ -46,15 +46,35 @@ loyal.fun turns small-shop loyalty points into a living on-chain asset on Solana
 
 ## Screenshots
 
-| Home | Scan | Risk vaults |
+| Home | Risk vaults | Leaderboard |
 |---|---|---|
-| ![Home](docs/screenshots/home.png) | ![Scan](docs/screenshots/scan.png) | ![Degen](docs/screenshots/degen.png) |
+| ![Home](docs/screenshots/home.png) | ![Degen](docs/screenshots/degen.png) | ![Leaderboard](docs/screenshots/leaderboard.png) |
 
-| Reward market | Profile & badges | Merchant panel |
+| Reward market | Coalition shops | Profile & badges |
 |---|---|---|
-| ![Market](docs/screenshots/market.png) | ![Profile](docs/screenshots/profile.png) | ![Merchant](docs/screenshots/merchant.png) |
+| ![Market](docs/screenshots/market.png) | ![Shops](docs/screenshots/shops.png) | ![Profile](docs/screenshots/profile.png) |
 
-The customer app is in English (mobile-first PWA); the merchant dashboard lives at `/merchant` on the shop's tablet.
+| Scan | Merchant panel |
+|---|---|
+| ![Scan](docs/screenshots/scan.png) | ![Merchant](docs/screenshots/merchant.png) |
+
+The customer app is in English (mobile-first PWA); the merchant dashboard lives at `/merchant` on the shop's tablet. Every number in these shots is read from devnet — nothing is mocked.
+
+## App surfaces
+
+| Screen | What it does | Where the data comes from |
+|---|---|---|
+| **Home** | Balance, **streak-expiry countdown** (the 48 h window), tier progress, protocol pulse | `UserProfile.last_earn_ts`, `constants.rs` thresholds, `Config` |
+| **Scan** | Camera or pasted payload → `issue_points`; the QR is a deep link, so a native camera works too | ed25519 signature verified on-chain |
+| **Risk vaults** | Markets with Pyth sparklines, an open sheet previewing **liquidation price and payout scenarios** in exact program math (fee included), risk meters, close confirmation, settled history | `RiskVault`, `Position`, `Config`, Pyth Hermes |
+| **Market** | Rewards grouped by shop, cNFT coupons, redemption code for the till | `RewardListing`, `Merchant`, DAS |
+| **Leaderboard** | Top traders, earners, streaks and badges, with your own row pinned | every `UserProfile` account |
+| **Shops** | The coalition directory plus a per-shop page with its rewards | `Merchant`, `RewardListing` |
+| **Profile** | Stats, soulbound badge shelf, activity, wallet backup | `UserProfile`, local log |
+| **/merchant** | Registration, sale QRs, listings, redemption scanner + **QR-key loss detection** with one-tap repair | `Merchant`, `RewardListing` |
+| **/demo-merchant** | Test kiosk: one tap, then instant sale codes | same as above |
+
+None of these surfaces needed a program change — they all read accounts that already exist on-chain.
 
 ## 1. The friction we kill
 
@@ -137,6 +157,19 @@ flowchart LR
 | `set_paused` / `set_coupon_tree` | admin | emergency stop / tree wiring |
 
 Every state change emits an Anchor event (`PointsIssued`, `PositionOpened/Closed/Liquidated`, `RewardPurchased/Redeemed`, `BadgeClaimed`).
+
+
+### Relayer security
+
+The relayer holds a funded devnet key and signs what it is handed, so validation **is** the entire defence:
+
+1. The fee payer must be us (slot 0).
+2. Every instruction must target a whitelisted program.
+3. **No instruction may use the fee payer as an account.** This is the one that matters: the System Program has to be whitelisted (accounts get created), so without it a caller could submit `SystemProgram.transfer` *from* the relayer wallet and drain it in one request.
+4. No address-lookup tables — they would hide accounts from the checks above.
+5. Per-IP rate limiting, and rent top-ups ride along with an already-validated transaction rather than a separate, open faucet.
+
+The merchant panel **never signs a transaction it hasn't read**: `lib/verifyRedeem.ts` checks the discriminator and accounts before the shop's key ever sees it — otherwise a hostile QR could carry `update_merchant_signer` and take the shop over.
 
 ## 4. Design tradeoffs
 
