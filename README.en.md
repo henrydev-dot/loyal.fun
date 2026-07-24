@@ -31,7 +31,7 @@
 
 1. Open [`/demo-merchant`](https://loyalfun.vercel.app/demo-merchant) on a laptop — one tap registers the demo till; the 50/100/200/500 buttons render a signed, 60-second sale QR
 2. On your phone open [loyalfun.vercel.app](https://loyalfun.vercel.app) → **Scan** and scan the code — or use the native camera: the QR is a deep link and opens the app by itself
-3. Points land in the embedded wallet → **Degen**: a 5× BONK position → **Market**: a cNFT coupon → **Profile**: a soulbound badge
+3. Points land in the embedded wallet → **Trade**: a 5× BONK position → **Market**: a cNFT coupon → **Profile**: a soulbound badge
 4. Running a shop? [`/merchant`](https://loyalfun.vercel.app/merchant): registration, your own sale QRs, reward listings and the coupon-redemption scanner
 
 <p align="center"><a href="https://loyalfun.vercel.app">App</a> · <a href="https://loyalfun.vercel.app/merchant">Merchant panel</a> · <a href="https://loyalfun.vercel.app/demo-merchant">Demo till</a> · <a href="https://loyalfun.vercel.app/api/health">API status</a></p>
@@ -54,9 +54,13 @@ loyal.fun turns small-shop loyalty points into a living on-chain asset on Solana
 |---|---|---|
 | ![Market](docs/screenshots/market.png) | ![Shops](docs/screenshots/shops.png) | ![Profile](docs/screenshots/profile.png) |
 
-| Scan | Merchant panel |
+| Scan | Merchant panel | Sale code (60 s) |
+|---|---|---|
+| ![Scan](docs/screenshots/scan.png) | ![Merchant](docs/screenshots/merchant.png) | ![Sale QR](docs/screenshots/merchant-sale.png) |
+
+| Merchant rewards | Demo till |
 |---|---|
-| ![Scan](docs/screenshots/scan.png) | ![Merchant](docs/screenshots/merchant.png) |
+| ![Merchant rewards](docs/screenshots/merchant-rewards.png) | ![Demo till](docs/screenshots/demo-merchant.png) |
 
 The customer app is in English (mobile-first PWA); the merchant dashboard lives at `/merchant` on the shop's tablet. Every number in these shots is read from devnet — nothing is mocked.
 
@@ -238,10 +242,9 @@ cp relayer/.env.example relayer/.env && npm run relayer   # :8787
 
 The Vercel project points at the `app/` directory. **The relayer is built
 in** as serverless routes: `/api/sponsor` (fee-payer co-signing with a
-program whitelist), `/api/price/:symbol` (posts fresh Pyth prices),
-`/api/fund` (tops up burner wallets with a sliver of SOL for account rent —
-the relayer pays fees, but `init` rent is debited from the user) and
-`/api/health`. The only required environment variable:
+program whitelist; burner-wallet rent top-ups ride along with an
+already-validated transaction), `/api/price/:symbol` (posts fresh Pyth
+prices) and `/api/health`. The only required environment variable:
 
 | Variable | Value |
 |---|---|
@@ -323,7 +326,7 @@ After importing: `solana address` must print your Phantom address; finish with `
 **Window B — the customer (home page):**
 4. **Scan & earn** — scan the QR from window A (no camera? "Paste the QR payload"). You should see `+100 LOYAL` and an Activity entry linking to the Explorer.
 5. Try scanning the **same** QR again → the transaction must be rejected (nonce replay guard).
-6. **Degen** — pick a vault, set stake and 5× leverage, open a position; watch live PnL and the liquidation line; close it. The balance changes by `clamp(1+5Δ,0,5)` minus the 2% fee.
+6. **Trade** — pick a vault, set stake and 5× leverage, open a position; watch live PnL and the liquidation line; close it. The balance changes by `clamp(1+5Δ,0,5)` minus the 2% fee.
 7. **Market** — buy a coupon; it appears under "My coupons" (needs the DAS RPC).
 8. Tap the coupon → a redemption QR appears (a partially-signed transaction, valid ~60–90 s).
 
@@ -331,7 +334,8 @@ After importing: `solana address` must print your Phantom address; finish with `
 9. **Redeem** tab — scan the customer's QR. The coupon burns on-chain; the "Redeemed" counter increments. The same coupon will not pass twice.
 
 **Window B — the customer:**
-10. **Profile** — claim the "First Blood" badge (unlocked by your first settled position). It's NonTransferable — try sending it from any wallet and watch the transfer fail.
+10. **Leaderboard** and **Shops** (from Home) — your wallet should now appear in the ranking, and the shop you scanned at should be listed in the coalition with its issued-points count updated.
+11. **Profile** — claim the "First Blood" badge (unlocked by your first settled position). It's NonTransferable — try sending it from any wallet and watch the transfer fail.
 
 ### 7.5. On-chain verification (Explorer, cluster=devnet)
 
@@ -353,10 +357,15 @@ After importing: `solana address` must print your Phantom address; finish with `
 ```
 programs/loyal_core/   main Anchor program (points, vaults, market, badges)
 programs/loyal_hook/   Token-2022 transfer hook (closed-loop whitelist)
-app/                   Next.js 14 PWA — customer app + /merchant
+app/                   Next.js 14 PWA — customer, /merchant, /demo-merchant
+  src/components/ui.tsx      UI primitives (Screen, Sheet, Skeleton, ErrorNote…)
+  src/components/viz.tsx     charts: Sparkline, DeltaValue, RiskMeter, BarRow
+  src/lib/queries.ts         account reads: leaderboard, shops, protocol stats
+  src/lib/verifyRedeem.ts    validates a transaction before the merchant signs
+  src/app/api/               built-in relayer (sponsor / price / health)
 relayer/               fee payer + QR signing + Pyth price posting (Express)
 tests/                 integration suite + deterministic PnL unit tests
-scripts/               deploy / create_vaults / seed_demo / phantom_to_keypair
+scripts/               deploy / create_vaults / seed_demo / wallet recovery
 docs/screenshots/      screenshots used above
 keys/                  devnet program keypairs (intentionally committed, demo grade)
 ```

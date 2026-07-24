@@ -354,7 +354,7 @@ export default function MerchantPage() {
           <h1 className="text-xl font-semibold truncate">{merchantState.name}</h1>
         </span>
         <span className="text-xs text-faint tabular-nums">
-          {merchantState.totalIssued.toString()} pts issued
+          {Number(merchantState.totalIssued.toString()).toLocaleString("en-US")} pts issued
         </span>
       </header>
 
@@ -377,7 +377,7 @@ export default function MerchantPage() {
           <button
             key={key}
             onClick={() => setTab(key)}
-            className={`flex-1 btn !py-2 text-sm ${
+            className={`flex-1 btn !py-2 text-sm whitespace-nowrap ${
               tab === key
                 ? "bg-accent text-bg"
                 : "border border-edge text-muted hover:text-ink"

@@ -31,7 +31,7 @@
 
 1. Otwórz [`/demo-merchant`](https://loyalfun.vercel.app/demo-merchant) na laptopie — jedno dotknięcie rejestruje kasę demo, przyciski 50/100/200/500 generują podpisany, 60-sekundowy QR sprzedaży
 2. Telefonem otwórz [loyalfun.vercel.app](https://loyalfun.vercel.app) → **Scan** i zeskanuj kod — albo użyj zwykłego aparatu: QR to głęboki link, sam otworzy aplikację
-3. Punkty wpadają na wbudowany portfel → **Degen**: pozycja 5× na BONK → **Market**: kupon cNFT → **Profile**: odznaka soulbound
+3. Punkty wpadają na wbudowany portfel → **Trade**: pozycja 5× na BONK → **Market**: kupon cNFT → **Profile**: odznaka soulbound
 4. Własny sklep? [`/merchant`](https://loyalfun.vercel.app/merchant): rejestracja, własne QR sprzedaży, listingi nagród i skaner realizacji kuponów
 
 <p align="center"><a href="https://loyalfun.vercel.app">Aplikacja</a> · <a href="https://loyalfun.vercel.app/merchant">Panel sklepu</a> · <a href="https://loyalfun.vercel.app/demo-merchant">Kiosk demo</a> · <a href="https://loyalfun.vercel.app/api/health">Status API</a></p>
@@ -54,9 +54,13 @@ loyal.fun zamienia punkty lojalnościowe małych sklepów w żywe aktywo na Sola
 |---|---|---|
 | ![Market](docs/screenshots/market.png) | ![Shops](docs/screenshots/shops.png) | ![Profile](docs/screenshots/profile.png) |
 
-| Skanowanie | Panel sprzedawcy |
+| Skanowanie | Panel sprzedawcy | Kod sprzedaży (60 s) |
+|---|---|---|
+| ![Scan](docs/screenshots/scan.png) | ![Merchant](docs/screenshots/merchant.png) | ![Sale QR](docs/screenshots/merchant-sale.png) |
+
+| Nagrody sprzedawcy | Kiosk demo |
 |---|---|
-| ![Scan](docs/screenshots/scan.png) | ![Merchant](docs/screenshots/merchant.png) |
+| ![Merchant rewards](docs/screenshots/merchant-rewards.png) | ![Demo till](docs/screenshots/demo-merchant.png) |
 
 Aplikacja kliencka jest w języku angielskim (PWA, mobile-first); dashboard sprzedawcy działa pod `/merchant` na tablecie sklepu. Wszystkie liczby na zrzutach pochodzą z devnetu — nic nie jest zaślepką.
 
@@ -238,9 +242,8 @@ cp relayer/.env.example relayer/.env && npm run relayer   # :8787
 
 Projekt Vercela wskazuje katalog `app/`. **Relayer jest wbudowany** jako
 route'y serverless: `/api/sponsor` (współpodpis fee-payera z whitelistą
-programów), `/api/price/:symbol` (publikacja świeżych cen Pyth),
-`/api/fund` (automatyczne zasilenie portfela burner drobnym SOL na czynsz
-kont — relayer płaci opłaty, ale rent kont `init` schodzi z użytkownika)
+programów; doładowanie czynszu dla portfela burner jedzie razem z już
+zwalidowaną transakcją), `/api/price/:symbol` (publikacja świeżych cen Pyth)
 oraz `/api/health`. Jedyna wymagana zmienna środowiskowa:
 
 | Zmienna | Wartość |
@@ -323,7 +326,7 @@ Po imporcie: `solana address` musi pokazać adres z Phantoma; na końcu `history
 **Okno B — klient (strona główna):**
 4. **Scan & earn** — zeskanuj QR z okna A (bez kamery: „Paste the QR payload"). Powinno pojawić się `+100 LOYAL` i wpis w Activity z linkiem do Explorera.
 5. Spróbuj zeskanować **ten sam** QR drugi raz → transakcja musi zostać odrzucona (ochrona nonce przed replay).
-6. **Degen** — wybierz vault, ustaw stake i dźwignię 5×, otwórz pozycję; obserwuj live PnL i linię likwidacji; zamknij pozycję. Saldo zmienia się o `clamp(1+5Δ,0,5)` minus 2% fee.
+6. **Trade** — wybierz vault, ustaw stake i dźwignię 5×, otwórz pozycję; obserwuj live PnL i linię likwidacji; zamknij pozycję. Saldo zmienia się o `clamp(1+5Δ,0,5)` minus 2% fee.
 7. **Market** — kup kupon; pojawi się w „My coupons" (wymaga RPC z DAS).
 8. Dotknij kuponu → pokaże się QR realizacji (częściowo podpisana transakcja, ważna ~60–90 s).
 
@@ -331,7 +334,8 @@ Po imporcie: `solana address` musi pokazać adres z Phantoma; na końcu `history
 9. Zakładka **Redeem** — zeskanuj QR klienta. Kupon spala się on-chain; licznik „Redeemed" rośnie. Ten sam kupon drugi raz nie przejdzie.
 
 **Okno B — klient:**
-10. **Profile** — odbierz odznakę „First Blood" (po pierwszym rozliczeniu pozycji). Odznaka jest NonTransferable — spróbuj wysłać ją z dowolnego portfela i patrz, jak transfer się nie udaje.
+10. **Leaderboard** i **Shops** (z ekranu Home) — Twój portfel powinien pojawić się w rankingu, a sklep, w którym skanowałeś, na liście koalicji z zaktualizowaną liczbą wydanych punktów.
+11. **Profile** — odbierz odznakę „First Blood" (po pierwszym rozliczeniu pozycji). Odznaka jest NonTransferable — spróbuj wysłać ją z dowolnego portfela i patrz, jak transfer się nie udaje.
 
 ### 7.5. Weryfikacja on-chain (Explorer, cluster=devnet)
 
@@ -353,10 +357,15 @@ Po imporcie: `solana address` musi pokazać adres z Phantoma; na końcu `history
 ```
 programs/loyal_core/   główny program Anchor (punkty, vaulty, market, odznaki)
 programs/loyal_hook/   transfer hook Token-2022 (whitelista zamkniętego obiegu)
-app/                   PWA Next.js 14 — aplikacja klienta + /merchant
+app/                   PWA Next.js 14 — klient, /merchant, /demo-merchant
+  src/components/ui.tsx      prymitywy UI (Screen, Sheet, Skeleton, ErrorNote…)
+  src/components/viz.tsx     wykresy: Sparkline, DeltaValue, RiskMeter, BarRow
+  src/lib/queries.ts         odczyt kont: leaderboard, sklepy, statystyki
+  src/lib/verifyRedeem.ts    walidacja transakcji przed podpisem sprzedawcy
+  src/app/api/               wbudowany relayer (sponsor / price / health)
 relayer/               fee payer + podpisy QR + publikacja cen Pyth (Express)
 tests/                 suite integracyjna + deterministyczne testy PnL
-scripts/               deploy / create_vaults / seed_demo / phantom_to_keypair
+scripts/               deploy / create_vaults / seed_demo / odzyskiwanie portfela
 docs/screenshots/      zrzuty ekranu użyte wyżej
 keys/                  devnetowe keypairy programów (celowo w repo, klasa demo)
 ```
